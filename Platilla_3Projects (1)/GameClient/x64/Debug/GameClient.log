@@ -36,4 +36,5 @@ e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxesclu
           [
               T=float
           ]
+e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\platilla_3projects (1)\gameclient\source.cpp(29): warning C4244: 'argumento': conversión de 'float' a 'sf::Int32'; posible pérdida de datos
   GameClient.vcxproj -> E:\edufs\Documents\OneDrive\Escritorio\Enti_Bien\Xarxes tercero\Cluedo\XarxesCluedo\Platilla_3Projects (1)\x64\Debug\GameClient.exe
