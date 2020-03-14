@@ -36,6 +36,14 @@ void Graphics::DrawDungeon()
 	sf::RectangleShape shape(sf::Vector2f(SIZE, SIZE));
 	shape.setOutlineColor(sf::Color::Black);
 	shape.setOutlineThickness(2.f);
+
+	float playerX = 10.f;
+	float playerY = 10.f;
+	//PLAYER
+	sf::RectangleShape player(sf::Vector2f(SIZE, SIZE));
+	player.setOutlineColor(sf::Color::Black);
+	player.setOutlineThickness(1.f);
+	
 	while (_window.isOpen())
 	{
 		sf::Event event;
@@ -54,18 +62,26 @@ void Graphics::DrawDungeon()
 				}
 				if (event.key.code == sf::Keyboard::Left)
 				{
+					if(playerX > 0)
+						playerX --;
 					std::cout << "LEFT\n";
 				}
 				else if (event.key.code == sf::Keyboard::Up)
 				{
+					if(playerY>0)
+						playerY--;
 					std::cout << "UP\n";
 				}
 				else if (event.key.code == sf::Keyboard::Right)
 				{
+					if(playerX<39)
+						playerX++;
 					std::cout << "RIGTH\n";
 				}
 				else if (event.key.code == sf::Keyboard::Down)
 				{
+					if(playerY<29)
+						playerY++;
 					std::cout << "DOWN\n";
 				}
 				break;
@@ -78,17 +94,19 @@ void Graphics::DrawDungeon()
 			{
 
 				shape.setFillColor(sf::Color(90, 90, 90, 255));
-
+				player.setFillColor(sf::Color(255, 0, 0, 255));
 
 				shape.setPosition(sf::Vector2f(i*SIZE, j*SIZE));
-				_window.draw(shape);
+				player.setPosition(sf::Vector2f(playerX*SIZE, playerY*SIZE));
+				
+				_window.draw(shape);				
 			}
 		}
 
 		for (size_t i = 0; i < salas.size(); i++)
 		{
 			salas[i].Draw(_window);
-			
+			_window.draw(player);		
 		}
 		centroMensajes.Draw(_window);
 

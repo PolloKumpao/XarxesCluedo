@@ -3,6 +3,14 @@
 #include <SFML\Graphics.hpp>
 
 enum tipo { PERSONAJE, ARMA, SALA };
+
+enum comandos {
+	START, LANZADADOS, ELEGIRPISTA, REVELARPISTA, MOVIMIENTO, NUEVAPOSICION, DEDUCCION, ENVIOSUPOSICION,
+	DESMENTIRCS, DESMENTIRSC, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA
+};
+
+enum habitaciones { BILLAR, BIBLIOTECA, COCINA, BAILE, INVERNADERO, COMEDOR, VESTIBULO, SALON, ESTUDIO};
+
 class carta
 {
 public:
@@ -23,12 +31,15 @@ private:
 class PlayerInfo
 {
 
-	std::string name;
+	
 	sf::Vector2i position;
 	
 	int lives;
 public:
+	std::string name;
+	int id;
 	std::list<carta> mano;
 	PlayerInfo();
 	~PlayerInfo();
+	habitaciones habitacion;
 };

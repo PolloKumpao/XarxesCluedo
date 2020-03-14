@@ -8,8 +8,7 @@ sf::TcpSocket incoming;
 std::list<sf::TcpSocket*> jugadores;
 
 //Funcion por la que el servidor recibe mensajes
-enum comandos {START,LANZADADOS,ELEGIRPISTA,REVELARPISTA,MOVIMIENTO,NUEVAPOSICION,DEDUCCION,ENVIOSUPOSICION,
-				DESMENTIRCS,DESMENTIRSC,DESMENTIDO,DESMENTIDOGENERAL,RESOLVERCS,RESOLVERSC,RESOLUCIONCORRECTA};
+
 
 
 
@@ -19,10 +18,11 @@ std::list<carta> baraja;
 std::list<carta> crimen;
 //std::list<PlayerInfo> listaPlayers;
 std::vector<PlayerInfo> listaPlayers;
+std::list<sf::TcpSocket*>::iterator jugadorActual;
 
 void crearBaraja()
 {
-	
+	//6 personajes
 	baraja.push_back(carta(PERSONAJE,"Amapola",1)); //1
 	baraja.push_back(carta(PERSONAJE,"Rubio",2)); //2
 	baraja.push_back(carta(PERSONAJE,"Orquidea",3));//3
@@ -30,7 +30,7 @@ void crearBaraja()
 	baraja.push_back(carta(PERSONAJE,"Prado",5));//5
 	baraja.push_back(carta(PERSONAJE,"Mora",6));//6
 	
-	
+	//6 armas
 	baraja.push_back(carta(ARMA,"Candelabro",7));//7
 	baraja.push_back(carta(ARMA,"Cuerda",8));//8
 	baraja.push_back(carta(ARMA,"Puñal",9));//9
@@ -38,6 +38,7 @@ void crearBaraja()
 	baraja.push_back(carta(ARMA,"Tuberia de Plomo",11));//11
 	baraja.push_back(carta(ARMA,"Herramienta",12));//12
 	
+	//9 habitaciones
 	baraja.push_back(carta(SALA,"Biblioteca",13));//13
 	baraja.push_back(carta(SALA,"Cocina",14));//14
 	baraja.push_back(carta(SALA,"Billar",15));//15
@@ -54,10 +55,10 @@ void crearBaraja()
 void repartirCartas()
 {
 	int r;
-	for (int i = 0; jugadores.size() > i; i++)
+/*	for (int i = 0; jugadores.size() > i; i++)
 	{
 		listaPlayers.push_back(PlayerInfo());
-	}
+	}*/
 
 	for (; baraja.size() != 0;)
 	{
@@ -79,11 +80,32 @@ void repartirCartas()
 
 	
 }
+void enviarPista()
+{
+	int r = rand() % 2;
+	sf::Packet packPista;
+	packPista << r;
+	(*jugadorActual)->send(packPista);
+}
 void tirarDados()
 {
+	sf::Packet dadosPack;
+	bool pista = false;
 	dado1 = rand() % 6 + 1;
 	dado2 = rand() % 6 + 1;
+
+	std::cout << dado1 << "  "<< dado2 << std::endl;
+	if (dado1 == 1 || dado2 == 1)
+		pista = true;
+
+	dado1 += dado2;
+	dadosPack << dado1 << pista;
+	(*jugadorActual)->send(dadosPack);
+
+	if (pista)
+		enviarPista();
 }
+
 void Enviar()
 {
 	int i = 0;
@@ -96,16 +118,11 @@ void Enviar()
 		packMano << manosize;
 		//std::cout << listaPlayers[i].mano.size();
 			for (int j = 0; listaPlayers[i].mano.size() > j; j++)
-			{
-				
-				
+			{			
 				packMano << itM->numero;
 				//std::cout << itM->numero << std::endl;
 				itM++;
-			}
-			
-			
-			
+			}	
 			//packMano << 1;
 			
 		(*it)->send(packMano);
@@ -113,6 +130,38 @@ void Enviar()
 	}
 
 }
+
+void asignarHabitacion()
+{
+	int counter1 = 0;
+	int counter=0;
+	sf::Packet packHabitacion;
+
+	int* r = NULL;
+	r = new int[listaPlayers.size()];
+
+	int tamaño = listaPlayers.size();
+	//Se envia a clientes cuantos jugadores hay en la partida
+	packHabitacion << tamaño;
+
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{
+		r[counter1] = rand() % 9 + 1;
+		counter1++;
+	}
+	
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{	
+		packHabitacion << r[counter]<<listaPlayers[counter].id;	
+		counter++;
+	}
+
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{		
+		(*it)->send(packHabitacion);
+	}
+}
+
 std::list<carta> crearCrimen(std::list<carta> &b)
 {
 	
@@ -140,17 +189,62 @@ std::list<carta> crearCrimen(std::list<carta> &b)
 	return c;
 	
 }
+
+
+
+void turno()
+{
+	tirarDados();
+}
+
+void partida()
+{
+	jugadorActual = jugadores.begin();
+
+	//while (1)
+	//{
+		turno();
+
+	//}
+}
+
 void inicioPartida()
 {
 	crearBaraja();
 	crimen = crearCrimen(baraja);
 	repartirCartas();
 	Enviar();
-
+	asignarHabitacion();
+	partida();
 }
+
+
+
+
+
+void setUp(sf::TcpSocket* _client)
+{
+	PlayerInfo player;
+	int _id;
+	_id = listaPlayers.size();
+	sf::Packet packNombre;
+	std::string _name;
+	_client->receive(packNombre);
+	packNombre >> _name;
+	player.name = _name;
+	player.id = _id;
+	sf::Packet packId;
+	packId << _id;
+	_client->send(packId);
+	listaPlayers.push_back(player);
+
+	std::cout << "LLega el cliente con nick:" << _name;
+}
+
 void ControlServidor()
 {
 	bool running = true;
+	bool inicio = false;
 	// Create a socket to listen to new connections
 	sf::TcpListener listener;
 	sf::Socket::Status status = listener.listen(50000);
@@ -179,7 +273,8 @@ void ControlServidor()
 				if (listener.accept(*client) == sf::Socket::Done)
 				{
 					// Add the new client to the clients list
-					std::cout << "Llega el cliente con puerto: " << client->getRemotePort() << std::endl;
+					setUp(client);
+					std::cout <<" y con puerto: " << client->getRemotePort()<< std::endl;
 					jugadores.push_back(client);
 					// Add the new client to the selector so that we will
 					// be notified when he sends something
@@ -222,10 +317,11 @@ void ControlServidor()
 				}
 			}
 		}
-		if (jugadores.size() == 3)
+		if (jugadores.size() == 3 && !inicio)
 		{
 			inicioPartida();
 			std::cout << "Empiezo" << std::endl;
+			inicio = true;
 		}
 	}
 
@@ -234,25 +330,19 @@ void ControlServidor()
 
 int main()
 {
+
+	srand(time(NULL));
+	std::cout << "Esperando jugadores..." << std::endl;
 	ControlServidor();
 	if (jugadores.size() == 3)
-	{
-		
-		inicioPartida();
+	{	
+		//inicioPartida();
 	}
-	srand(time(NULL));
 	
 	tirarDados();
 
 	std::cout << "Error" << std::endl;
 
-
-
-
-
-		
-
-		
 	
 	return 0;
 }
