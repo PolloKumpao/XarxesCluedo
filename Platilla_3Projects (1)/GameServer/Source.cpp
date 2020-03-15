@@ -33,9 +33,9 @@ void crearBaraja()
 	//6 armas
 	baraja.push_back(carta(ARMA,"Candelabro",7));//7
 	baraja.push_back(carta(ARMA,"Cuerda",8));//8
-	baraja.push_back(carta(ARMA,"Puñal",9));//9
+	baraja.push_back(carta(ARMA,"Punal",9));//9
 	baraja.push_back(carta(ARMA,"Pistola",10));//10
-	baraja.push_back(carta(ARMA,"Tuberia de Plomo",11));//11
+	baraja.push_back(carta(ARMA,"Tuberia",11));//11
 	baraja.push_back(carta(ARMA,"Herramienta",12));//12
 	
 	//9 habitaciones
@@ -80,17 +80,59 @@ void repartirCartas()
 
 	
 }
-void enviarPista()
+void enviarRecibirPista()
 {
 	int r = rand() % 2;
 	sf::Packet packPista;
 	packPista << r;
 	(*jugadorActual)->send(packPista);
+
+	std::string pista;
+	packPista.clear();
+	//Recibimos la eleccion de pista del cliente
+	(*jugadorActual)->receive(packPista);
+	packPista >> pista;
+	std::cout << "PISTA ELEGIDA: " << pista << std::endl;
+	int i = 0;
+
+	PlayerInfo playerPista;
+	playerPista.name = "null";
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{
+		for (std::list<carta>::iterator ot = listaPlayers[i].mano.begin(); listaPlayers[i].mano.end() != ot; ot++)
+		{
+			if (pista == (*ot).nombre) 
+			{
+				playerPista.name = listaPlayers[i].name;
+				exit;
+			}
+		}
+
+			i++;
+	}
+	sf::Packet pistaRevelada;
+	std::string pistaFinal;
+	if (playerPista.name == "null")
+	{
+		pistaFinal = "Ningun jugador tiene la carta " + pista;
+		pistaRevelada << pistaFinal;
+	}
+	else
+	{
+		pistaFinal = "El jugador con el Nick: "+ playerPista.name + " tiene la carta" + pista;
+		pistaRevelada << pistaFinal;
+	}
+	
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{
+		(*it)->send(pistaRevelada);
+	}
 }
+
 void tirarDados()
 {
 	sf::Packet dadosPack;
-	bool pista = false;
+	bool pista = true;
 	dado1 = rand() % 6 + 1;
 	dado2 = rand() % 6 + 1;
 
@@ -103,7 +145,7 @@ void tirarDados()
 	(*jugadorActual)->send(dadosPack);
 
 	if (pista)
-		enviarPista();
+		enviarRecibirPista();
 }
 
 void Enviar()
