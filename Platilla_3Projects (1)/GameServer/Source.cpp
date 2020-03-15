@@ -19,6 +19,8 @@ std::list<carta> crimen;
 //std::list<PlayerInfo> listaPlayers;
 std::vector<PlayerInfo> listaPlayers;
 std::list<sf::TcpSocket*>::iterator jugadorActual;
+sf::Packet comando;
+int comandSTR;
 
 void crearBaraja()
 {
@@ -84,6 +86,7 @@ void enviarRecibirPista()
 {
 	int r = rand() % 2;
 	sf::Packet packPista;
+	packPista.clear();
 	packPista << r;
 	(*jugadorActual)->send(packPista);
 
@@ -132,6 +135,7 @@ void enviarRecibirPista()
 void tirarDados()
 {
 	sf::Packet dadosPack;
+	dadosPack.clear();
 	bool pista = true;
 	dado1 = rand() % 6 + 1;
 	dado2 = rand() % 6 + 1;
@@ -236,18 +240,33 @@ std::list<carta> crearCrimen(std::list<carta> &b)
 
 void turno()
 {
+	comandSTR = 1;
+	comando << comandSTR;
+	(*jugadorActual)->send(comando);
+
 	tirarDados();
 }
 
 void partida()
 {
-	jugadorActual = jugadores.begin();
+	std::list<sf::TcpSocket*>::iterator j = jugadores.begin();
+	jugadorActual = j;
 
-	//while (1)
-	//{
+	while (1)
+	{
 		turno();
+		if (j == jugadores.end())
+		{
+			j = jugadores.begin();
+		}
+		else
+		{
+			j++;
+		}
+	
+		jugadorActual = j;
 
-	//}
+	}
 }
 
 void inicioPartida()

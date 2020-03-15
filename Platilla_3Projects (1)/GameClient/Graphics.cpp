@@ -2,6 +2,8 @@
 #include <iostream>
 
 
+
+
 Graphics::Graphics()
 {
 
@@ -68,8 +70,7 @@ void Graphics::DrawDungeon()
 
 	int movements = 10;
 	int c_movements = 0;
-	float playerX = 10.f;
-	float playerY = 10.f;
+
 	float playerX_init = playerX;
 	float playerY_init = playerY;
 

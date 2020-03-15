@@ -64,6 +64,8 @@ class Graphics
 	Sala centroMensajes;
 public:
 	Graphics();
+	float playerX = 10.f;
+	float playerY = 10.f;
 	void DrawDungeon();
 	~Graphics();
 };

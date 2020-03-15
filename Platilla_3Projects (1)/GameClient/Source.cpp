@@ -8,7 +8,8 @@
 #include <fcntl.h>
 #include "Graphics.h"
 
-
+sf::Packet comando;
+int comandString;
 
 sf::TcpSocket socket;
 std::string prueba = "Prueba conexion";
@@ -29,8 +30,22 @@ int habitacionInicial[3];
 sf::Packet packHabitacion;
 int numPlayers = 0;
 int id = 0;
-estados estadoPlayer;
-
+bool pista = false;
+int dados = 0;
+estados estadoPlayer = WAIT;
+sf::Event event;
+void recibirComando()
+{
+	socket.receive(comando);
+	comando >> comandString;
+	switch (comandString)
+	{
+	case 1: estadoPlayer = TURNO;
+		break;
+	default:
+		break;
+	}
+}
 void inicioPartida()
 {
 
@@ -202,11 +217,8 @@ void inicioPartida()
 void turno()
 {
 
-	sf::Packet dadosPack;
-	bool pista = false;
-	int dados = 0;
-	socket.receive(dadosPack);
-	dadosPack >> dados >> pista;
+	
+
 	std::cout << "Has sacado un " << dados;
 	std::string pistaElegir;
 
@@ -258,25 +270,53 @@ void turno()
 		pistaPck << pistaElegir;
 		socket.send(pistaPck);
 
+		sf::Packet pistaRevelar;
+		socket.receive(pistaRevelar);
+		std::string pistaRevelada;
+		pistaRevelar >> pistaRevelada;
+		std::cout << pistaRevelada;
+	
+
 		do {
 			//MOVIMIENTO
 			//send posicion 
+			
+			if(event.type == sf::Event::KeyPressed)
+				if (event.key.code == sf::Keyboard::K)
+				{
+					estadoPlayer = WAIT;
+				}
+			sf::Packet packPos;
+			packPos << g.playerX << g.playerY;
+			socket.send(packPos);
+			estadoPlayer = WAIT;
 			//ESTADO = WAIT
-		}
-		while(estadoPlayer==TURNO)
+		} while (estadoPlayer == TURNO);
+}
+
+void wait()
+{
+	recibirComando();
+	while (estadoPlayer == WAIT);
+	{
+		
+
+		/*sf::Packet pistaRevelar;
+		socket.receive(pistaRevelar);
+		std::string pistaRevelada;
+		pistaRevelar >> pistaRevelada;
+		std::cout << pistaRevelada;*/
+	} 
 }
 
 int main()
 {
 
 	inicioPartida();
+	wait();
 	turno();
 
-	sf::Packet pistaRevelar;
-	socket.receive(pistaRevelar);
-	std::string pistaRevelada;
-	pistaRevelar >> pistaRevelada;
-	std::cout << pistaRevelada;
+	
 	//socket.disconnect();
 
 	while (1)
