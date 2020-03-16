@@ -9,6 +9,10 @@ std::list<sf::TcpSocket*> jugadores;
 
 //Funcion por la que el servidor recibe mensajes
 
+//enum comandos {
+//	START, LANZADADOS, ELEGIRPISTA, REVELARPISTA, MOVIMIENTO, NUEVAPOSICION, DEDUCCION, ENVIOSUPOSICION,
+//	DESMENTIRCS, DESMENTIRSC, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA
+//};
 
 
 
@@ -20,7 +24,12 @@ std::list<carta> crimen;
 std::vector<PlayerInfo> listaPlayers;
 std::list<sf::TcpSocket*>::iterator jugadorActual;
 sf::Packet comando;
-int comandSTR;
+int comandServer;
+int comandClient;
+bool end_turno = false;
+
+
+
 
 void crearBaraja()
 {
@@ -84,17 +93,13 @@ void repartirCartas()
 }
 void enviarRecibirPista()
 {
-	int r = rand() % 2;
-	sf::Packet packPista;
-	packPista.clear();
-	packPista << r;
-	(*jugadorActual)->send(packPista);
-
+	
+	comandClient = 2;
 	std::string pista;
-	packPista.clear();
+	//comando.clear();
 	//Recibimos la eleccion de pista del cliente
-	(*jugadorActual)->receive(packPista);
-	packPista >> pista;
+	//(*jugadorActual)->receive(comando);
+	comando >> pista;
 	std::cout << "PISTA ELEGIDA: " << pista << std::endl;
 	int i = 0;
 
@@ -113,30 +118,54 @@ void enviarRecibirPista()
 
 			i++;
 	}
-	sf::Packet pistaRevelada;
+	comando.clear();
 	std::string pistaFinal;
 	if (playerPista.name == "null")
 	{
 		pistaFinal = "Ningun jugador tiene la carta " + pista;
-		pistaRevelada << pistaFinal;
+		comando << comandClient << pistaFinal;
 	}
 	else
 	{
 		pistaFinal = "El jugador con el Nick: "+ playerPista.name + " tiene la carta" + pista;
-		pistaRevelada << pistaFinal;
+		comando << comandClient << pistaFinal;
 	}
 	
 	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
 	{
-		(*it)->send(pistaRevelada);
+		(*it)->send(comando);
+		std::cout << "Envio" << std::endl;
 	}
 }
 
 void tirarDados()
 {
-	sf::Packet dadosPack;
-	dadosPack.clear();
+	comando.clear();
+	comandServer = 1;
+
 	bool pista = true;
+	int r = 0;
+	dado1 = rand() % 6 + 1;
+	dado2 = rand() % 6 + 1;
+
+	if (dado1 == 1 || dado2 == 1)
+	{
+		pista = true;
+		r = rand() % 2;
+	}
+		
+
+	dado1 += dado2;
+	
+	comando << comandServer << dado1 << pista << r;
+
+	(*jugadorActual)->send(comando);
+
+	
+
+	/*sf::Packet dadosPack;
+	dadosPack.clear();
+	
 	dado1 = rand() % 6 + 1;
 	dado2 = rand() % 6 + 1;
 
@@ -149,7 +178,7 @@ void tirarDados()
 	(*jugadorActual)->send(dadosPack);
 
 	if (pista)
-		enviarRecibirPista();
+		enviarRecibirPista();*/
 }
 
 void Enviar()
@@ -238,36 +267,9 @@ std::list<carta> crearCrimen(std::list<carta> &b)
 
 
 
-void turno()
-{
-	comandSTR = 1;
-	comando << comandSTR;
-	(*jugadorActual)->send(comando);
 
-	tirarDados();
-}
 
-void partida()
-{
-	std::list<sf::TcpSocket*>::iterator j = jugadores.begin();
-	jugadorActual = j;
 
-	while (1)
-	{
-		turno();
-		if (j == jugadores.end())
-		{
-			j = jugadores.begin();
-		}
-		else
-		{
-			j++;
-		}
-	
-		jugadorActual = j;
-
-	}
-}
 
 void inicioPartida()
 {
@@ -276,7 +278,7 @@ void inicioPartida()
 	repartirCartas();
 	Enviar();
 	asignarHabitacion();
-	partida();
+	
 }
 
 
@@ -383,11 +385,61 @@ void ControlServidor()
 			inicioPartida();
 			std::cout << "Empiezo" << std::endl;
 			inicio = true;
+			running = false;
 		}
 	}
 
 }
 
+
+void recibirPacket()
+{
+	(*jugadorActual)->receive(comando);
+	comando >> comandServer;
+	switch (comandServer)
+	{
+	case 1:    enviarRecibirPista(); //Recibir Pista
+		break;
+	case 2:
+
+		break;
+	}
+}
+void turno()
+{
+
+	
+	//(*jugadorActual)->send(comando);
+	tirarDados();
+	while (!end_turno)
+	{
+		recibirPacket();
+
+	}
+
+}
+void partida()
+{
+	std::cout << "entro en la partida" << std::endl;
+	std::list<sf::TcpSocket*>::iterator j = jugadores.begin();
+	jugadorActual = j;
+
+	while (1)
+	{
+		turno();
+		if (j == jugadores.end())
+		{
+			j = jugadores.begin();
+		}
+		else
+		{
+			j++;
+		}
+
+		jugadorActual = j;
+
+	}
+}
 
 int main()
 {
@@ -395,12 +447,9 @@ int main()
 	srand(time(NULL));
 	std::cout << "Esperando jugadores..." << std::endl;
 	ControlServidor();
-	if (jugadores.size() == 3)
-	{	
-		//inicioPartida();
-	}
+	partida();
 	
-	tirarDados();
+	//tirarDados();
 
 	std::cout << "Error" << std::endl;
 

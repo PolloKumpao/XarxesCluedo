@@ -9,7 +9,8 @@
 #include "Graphics.h"
 
 sf::Packet comando;
-int comandString;
+int comandClient  = 0 ;
+int comandServer = 0;
 
 sf::TcpSocket socket;
 std::string prueba = "Prueba conexion";
@@ -18,6 +19,8 @@ sf::Packet pack;
 
 PlayerInfo playerInfo;
 Graphics g;
+
+
 
 
 sf::Socket::Status status = socket.connect("localhost", 50000, sf::milliseconds(15.f));
@@ -32,20 +35,22 @@ int numPlayers = 0;
 int id = 0;
 bool pista = false;
 int dados = 0;
+int tipoPista = 0;
+
 estados estadoPlayer = WAIT;
 sf::Event event;
-void recibirComando()
+bool end_game = false;
+//enum comandos {
+//	START, LANZADADOS, ELEGIRPISTA, REVELARPISTA, MOVIMIENTO, NUEVAPOSICION, DEDUCCION, ENVIOSUPOSICION,
+//	DESMENTIRCS, DESMENTIRSC, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA
+//};
+
+
+void recibirEnviarPista()
 {
-	socket.receive(comando);
-	comando >> comandString;
-	switch (comandString)
-	{
-	case 1: estadoPlayer = TURNO;
-		break;
-	default:
-		break;
-	}
+
 }
+
 void inicioPartida()
 {
 
@@ -217,7 +222,7 @@ void inicioPartida()
 void turno()
 {
 
-	
+	comando >> dados >> pista >> tipoPista;
 
 	std::cout << "Has sacado un " << dados;
 	std::string pistaElegir;
@@ -229,13 +234,12 @@ void turno()
 
 	else
 	{
-			sf::Packet pistaPack;
-			int pista = 0;
+		
+		
 			std::cout << " tienes pista de " << std::endl;
-			socket.receive(pistaPack);
-			pistaPack >> pista;
-			pista = 0;
-			switch (pista)
+			
+			tipoPista = 0;
+			switch (tipoPista)
 			{
 			case 0:
 				std::cout << "ARMA. Elige entre Candelabro | Cuerda | Punal | Pistola | Tuberia | Herramienta." << std::endl;
@@ -266,15 +270,15 @@ void turno()
 			}
 		}
 
-		sf::Packet pistaPck;
-		pistaPck << pistaElegir;
-		socket.send(pistaPck);
+		comando.clear();
+		comandServer = 1;
+		comando << comandServer << pistaElegir;    // comando Revelar Pista
+		comando << pistaElegir;
 
-		sf::Packet pistaRevelar;
-		socket.receive(pistaRevelar);
-		std::string pistaRevelada;
-		pistaRevelar >> pistaRevelada;
-		std::cout << pistaRevelada;
+		socket.send(comando);
+		comando.clear();
+
+		
 	
 
 		do {
@@ -294,27 +298,60 @@ void turno()
 		} while (estadoPlayer == TURNO);
 }
 
+
+void revelarPista()
+{
+	std::string pistaRevelada;
+	comando >> pistaRevelada;
+	std::cout << pistaRevelada;
+	comando.clear();
+}
+
+void recibirComando()
+{
+	
+		socket.receive(comando);
+		comando >> comandClient;
+		switch (comandClient)
+		{
+		case 1: //Recibes dados
+			turno();
+
+			break;
+		case 2: //Revelar pista
+			revelarPista();
+
+
+			break;
+		}
+	
+}
+
 void wait()
 {
 	recibirComando();
-	while (estadoPlayer == WAIT);
-	{
-		
+	
+
 
 		/*sf::Packet pistaRevelar;
 		socket.receive(pistaRevelar);
 		std::string pistaRevelada;
 		pistaRevelar >> pistaRevelada;
 		std::cout << pistaRevelada;*/
-	} 
+	
 }
 
 int main()
 {
-
+	g.DrawDungeon();
 	inicioPartida();
-	wait();
-	turno();
+	while(!end_game)
+	{
+	 recibirComando();
+	}
+	
+	/*wait();
+	turno();*/
 
 	
 	//socket.disconnect();

@@ -157,6 +157,7 @@ void Graphics::DrawDungeon()
 				}
 				break;
 			}
+		
 		}
 		_window.clear();
 		for (int i = 0; i < W_WINDOW_TITLE; i++)
