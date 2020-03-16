@@ -14,8 +14,8 @@ Graphics::Graphics()
 	Sala salaBaile("Sala de baile", 0, 12, 8, 6, sf::Color::Blue);
 	Sala vestibulo("vestibulo", 30, 12, 10, 8, sf::Color::White);
 	Sala cocina("cocina", 0, 20, 10, 10, sf::Color::Green);
-	Sala comedor("comedor", 13, 20, 13, 10, sf::Color(150,0,150));
-	Sala salon("salon", 30, 22, 10, 8, sf::Color(0,150,150));
+	Sala comedor("comedor", 13, 20, 13, 10, sf::Color(150, 0, 150));
+	Sala salon("salon", 30, 22, 10, 8, sf::Color(0, 150, 150));
 	salas[0] = invernadero;
 	salas[1] = salaBillar;
 	salas[2] = biblioteca;
@@ -26,7 +26,7 @@ Graphics::Graphics()
 	salas[7] = comedor;
 	salas[8] = salon;
 
-	centroMensajes.color = sf::Color(150,150,150);
+	centroMensajes.color = sf::Color(150, 150, 150);
 	centroMensajes.origen.x = 12;
 	centroMensajes.origen.y = 12;
 	centroMensajes.longitud.x = 14;
@@ -61,14 +61,15 @@ bool isInRoom(float plx, float ply)
 	return false;
 }
 
-void Graphics::DrawDungeon()
+void Graphics::DrawDungeon(sf::TcpSocket &socket)
 {
+	sf::Packet packet;
 	sf::RenderWindow _window(sf::VideoMode(800, 600), "Ventanita");
 	sf::RectangleShape shape(sf::Vector2f(SIZE, SIZE));
 	shape.setOutlineColor(sf::Color::Black);
 	shape.setOutlineThickness(2.f);
 
-	int movements = 10;
+
 	int c_movements = 0;
 
 	float playerX_init = playerX;
@@ -78,7 +79,8 @@ void Graphics::DrawDungeon()
 	sf::RectangleShape player(sf::Vector2f(SIZE, SIZE));
 	player.setOutlineColor(sf::Color::Black);
 	player.setOutlineThickness(1.f);
-	
+	while (_window.isOpen())
+	{
 		sf::Event event;
 		bool playerMoved = false;
 		while (_window.pollEvent(event))
@@ -91,20 +93,23 @@ void Graphics::DrawDungeon()
 			case sf::Event::KeyPressed:
 				if (event.key.code == sf::Keyboard::Escape)
 				{
+					packet.clear();
 					_window.close();
+					socket.send(packet);
+					std::cout << "desconectado" << std::endl;
 				}
-				if (event.key.code == sf::Keyboard::Left )
+				if (event.key.code == sf::Keyboard::Left)
 				{
 					if (playerX > 0 && c_movements < movements)
 					{
 						if (!(playerX == 26 && playerY < 18 && playerY>11))
 						{
 							playerX--;
-							if(!isInRoom(playerX, playerY))
-								c_movements++;					
+							if (!isInRoom(playerX, playerY))
+								c_movements++;
 						}
 					}
-					std::cout << "MOVIMIENTOS RESTANTES: " <<movements-c_movements << std::endl;
+					std::cout << "MOVIMIENTOS RESTANTES: " << movements - c_movements << std::endl;
 				}
 				else if (event.key.code == sf::Keyboard::Up)
 				{
@@ -115,7 +120,7 @@ void Graphics::DrawDungeon()
 							playerY--;
 							if (!isInRoom(playerX, playerY))
 								c_movements++;
-							
+
 						}
 					}
 					std::cout << "MOVIMIENTOS RESTANTES: " << movements - c_movements << std::endl;
@@ -124,7 +129,7 @@ void Graphics::DrawDungeon()
 				else if (event.key.code == sf::Keyboard::Right)
 				{
 					if (playerX < 39 && c_movements < movements)
-					{		
+					{
 						if (!(playerX == 11 && playerY < 18 && playerY>11))
 						{
 							playerX++;
@@ -155,9 +160,14 @@ void Graphics::DrawDungeon()
 					std::cout << "Reset";
 					std::cout << c_movements;
 				}
+				else if (event.key.code == sf::Keyboard::Enter)
+				{
+					
+				}
 				break;
+
 			}
-		
+
 		}
 		_window.clear();
 		for (int i = 0; i < W_WINDOW_TITLE; i++)
@@ -170,15 +180,15 @@ void Graphics::DrawDungeon()
 
 				shape.setPosition(sf::Vector2f(i*SIZE, j*SIZE));
 				player.setPosition(sf::Vector2f(playerX*SIZE, playerY*SIZE));
-				
-				_window.draw(shape);				
+
+				_window.draw(shape);
 			}
 		}
 
 		for (size_t i = 0; i < salas.size(); i++)
 		{
 			salas[i].Draw(_window);
-			_window.draw(player);		
+			_window.draw(player);
 		}
 		centroMensajes.Draw(_window);
 
@@ -196,7 +206,8 @@ void Graphics::DrawDungeon()
 		_window.draw(shape);*/
 
 		_window.display();
-	
+	}
+
 }
 
 

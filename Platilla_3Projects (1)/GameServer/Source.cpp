@@ -23,10 +23,13 @@ std::list<carta> crimen;
 //std::list<PlayerInfo> listaPlayers;
 std::vector<PlayerInfo> listaPlayers;
 std::list<sf::TcpSocket*>::iterator jugadorActual;
+int id_jugadorActual;
 sf::Packet comando;
 int comandServer;
 int comandClient;
 bool end_turno = false;
+
+int n = 0; // ID jugador en listaPlayer
 
 
 
@@ -141,9 +144,9 @@ void enviarRecibirPista()
 void tirarDados()
 {
 	comando.clear();
-	comandServer = 1;
+	comandClient = 1;
 
-	bool pista = true;
+	bool pista = false;
 	int r = 0;
 	dado1 = rand() % 6 + 1;
 	dado2 = rand() % 6 + 1;
@@ -157,7 +160,7 @@ void tirarDados()
 
 	dado1 += dado2;
 	
-	comando << comandServer << dado1 << pista << r;
+	comando << comandClient << dado1 << pista << r;
 
 	(*jugadorActual)->send(comando);
 
@@ -179,6 +182,30 @@ void tirarDados()
 
 	if (pista)
 		enviarRecibirPista();*/
+}
+
+void actualizarPos()
+{
+	comandClient = 3;
+	float x;
+	float y;
+	comando >> x >> y;
+	x= listaPlayers[n].x;
+	y= listaPlayers[n].y;
+
+	comando.clear();
+	std::cout << "Actualizo la pos del jugador" << std::endl;
+
+	comando << comandClient << n << x << y;
+
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{
+		(*it)->send(comando);
+		std::cout << "Envio" << std::endl;
+	}
+	comando.clear();
+	comando << 4;
+	(*jugadorActual)->send(comando);
 }
 
 void Enviar()
@@ -266,11 +293,6 @@ std::list<carta> crearCrimen(std::list<carta> &b)
 }
 
 
-
-
-
-
-
 void inicioPartida()
 {
 	crearBaraja();
@@ -280,9 +302,6 @@ void inicioPartida()
 	asignarHabitacion();
 	
 }
-
-
-
 
 
 void setUp(sf::TcpSocket* _client)
@@ -300,6 +319,8 @@ void setUp(sf::TcpSocket* _client)
 	packId << _id;
 	_client->send(packId);
 	listaPlayers.push_back(player);
+
+
 
 	std::cout << "LLega el cliente con nick:" << _name;
 }
@@ -391,17 +412,112 @@ void ControlServidor()
 
 }
 
+void desmentir()
+{
+	std::string arma, sala, personaje;
+	int jugadorIzquierda = n+1;
+	comando >> arma >> sala >> personaje;
 
+	std::string deduccion = "El jugador " + listaPlayers[n].name + " ha hecho la siguiente deduccion: " + personaje + " " + sala + " " + arma;
+	comando.clear();
+	comandClient = 5;
+	comando << comandClient << deduccion;
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{
+		(*it)->send(comando);
+		//std::cout << "Envio deduccion" << std::endl;
+	}
+	comando.clear();
+	comandClient = 6;
+	comando << comandClient;
+	int j = 0;
+	bool tieneAlguna = false;
+	
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{
+		if (jugadorActual != (it))
+		{
+
+		
+		
+		for (std::list<carta>::iterator ot = listaPlayers[j].mano.begin(); listaPlayers[j].mano.end() != ot; ot++)
+		{
+			if ((ot->nombre == arma))
+			{
+				comando << arma;
+				tieneAlguna = true;
+			}
+				
+			if((ot->nombre == sala))
+			{
+				comando << sala;
+				tieneAlguna = true;
+			}
+			if ((ot->nombre == personaje))
+			{
+				comando << personaje;
+				tieneAlguna = true;
+			}
+		}
+
+		if (tieneAlguna)
+		{
+			(*it)->send(comando);
+			std::cout << "Envio al que toca" << std::endl;
+			break;
+		}
+		}
+		std::cout << "vuelta";
+		j++;
+	}
+	if (!tieneAlguna)
+	{
+		std::string nadie = "Ningun jugador tiene ninguna de las 3 cartas";
+		for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+		{
+			comando.clear();
+			comandClient = 7;
+			comando << comandClient << nadie;
+			(*it)->send(comando);
+
+		}
+	}
+	
+}
+
+void enseñarCarta()
+{
+	std::string carta;
+	comando >> carta;
+	comando.clear();
+	comandClient = 8;
+	comando << comandClient << carta;
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{
+		(*it)->send(comando);
+	std::cout << "enviando la carta" << std::endl;
+
+	}
+}
 void recibirPacket()
 {
+	std::cout << "esperando" << std::endl;
 	(*jugadorActual)->receive(comando);
 	comando >> comandServer;
+	std::cout << "He recibido " << comandServer;
 	switch (comandServer)
 	{
-	case 1:    enviarRecibirPista(); //Recibir Pista
+	case 1:    //Recibir Pista
+		enviarRecibirPista(); 		
 		break;
-	case 2:
-
+	case 2:		//Recibir pos
+		actualizarPos();
+		break;
+	case 3:     //Recibir deduccion
+		desmentir();
+		break;
+	case 4:
+		enseñarCarta();
 		break;
 	}
 }
@@ -416,6 +532,7 @@ void turno()
 		recibirPacket();
 
 	}
+	
 
 }
 void partida()
@@ -423,7 +540,8 @@ void partida()
 	std::cout << "entro en la partida" << std::endl;
 	std::list<sf::TcpSocket*>::iterator j = jugadores.begin();
 	jugadorActual = j;
-
+	
+	
 	while (1)
 	{
 		turno();
@@ -434,9 +552,18 @@ void partida()
 		else
 		{
 			j++;
+			jugadorActual = j;
+		}
+		if (listaPlayers.size() == n)
+		{
+			n = 0;
+		}
+		else
+		{
+			n++;
 		}
 
-		jugadorActual = j;
+		
 
 	}
 }

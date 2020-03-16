@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML\Network.hpp>
 #include <array>
 #define SIZE 20.f
 ///TAMAÑO EN PX DE LA VENTANA
@@ -66,7 +67,8 @@ public:
 	Graphics();
 	float playerX = 10.f;
 	float playerY = 10.f;
-	void DrawDungeon();
+	int	movements;
+	void DrawDungeon(sf::TcpSocket &socket);
 	~Graphics();
 };
 

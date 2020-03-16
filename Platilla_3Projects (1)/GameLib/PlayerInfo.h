@@ -40,6 +40,8 @@ class PlayerInfo
 public:
 	std::string name;
 	int id;
+	float x;
+	float y;
 	std::list<carta> mano;
 	PlayerInfo();
 	~PlayerInfo();

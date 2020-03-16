@@ -1,7 +1,7 @@
 #pragma once
 #include <PlayerInfo.h>
 #include <SFML\Network.hpp>
-
+#include<thread>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -23,6 +23,7 @@ Graphics g;
 
 
 
+
 sf::Socket::Status status = socket.connect("localhost", 50000, sf::milliseconds(15.f));
 sf::Packet packetMano;
 std::vector<carta> mano;
@@ -36,6 +37,7 @@ int id = 0;
 bool pista = false;
 int dados = 0;
 int tipoPista = 0;
+int n = 0;
 
 estados estadoPlayer = WAIT;
 sf::Event event;
@@ -46,10 +48,7 @@ bool end_game = false;
 //};
 
 
-void recibirEnviarPista()
-{
 
-}
 
 void inicioPartida()
 {
@@ -173,30 +172,48 @@ void inicioPartida()
 			{
 			case 1:
 				player.habitacion = BILLAR;
+				player.x = 14;
+				player.y = 5;
 				break;
 			case 2:
 				player.habitacion = BIBLIOTECA;
+				player.x = 24;
+				player.y = 5;
 				break;
 			case 3:
 				player.habitacion = COCINA;
+				player.x = 5;
+				player.y = 25;
 				break;
 			case 4:
 				player.habitacion = BAILE;
+				player.x = 4;
+				player.y = 14;
 				break;
 			case 5:
 				player.habitacion = INVERNADERO;
+				player.x = 4;
+				player.y = 5;
 				break;
 			case 6:
 				player.habitacion = COMEDOR;
+				player.x = 20;
+				player.y = 25;
 				break;
 			case 7:
 				player.habitacion = VESTIBULO;
+				player.x = 35;
+				player.y = 10;
 				break;
 			case 8:
 				player.habitacion = SALON;
+				player.x = 35;
+				player.y = 26;
 				break;
 			case 9:
 				player.habitacion = ESTUDIO;
+				player.x = 36;
+				player.y = 5;
 				break;
 			}
 			packHabitacion >> player.id;
@@ -223,7 +240,7 @@ void turno()
 {
 
 	comando >> dados >> pista >> tipoPista;
-
+	g.movements = dados;
 	std::cout << "Has sacado un " << dados;
 	std::string pistaElegir;
 
@@ -298,6 +315,30 @@ void turno()
 		} while (estadoPlayer == TURNO);
 }
 
+std::string habitacion()
+{
+	if (players[n].x < 8 && players[n].y < 10)
+		return "Invernadero";
+	else if (players[n].x > 11 && players[n].x < 18 && players[n].y < 10)
+		return "Billar";
+	else if (players[n].x > 21 && players[n].x < 28 && players[n].y < 10)
+		return "Biblioteca";
+	else if (players[n].x > 31 && players[n].y < 10)
+		return "Estudio";
+	else if (players[n].x < 8 && players[n].y>11 && players[n].y < 18)
+		return "Baile";
+	else if (players[n].x > 29 && players[n].y > 11 && players[n].y < 20)
+		return "Vestibulo";
+	else if (players[n].x < 10 && players[n].x >19 && players[n].y < 30)
+		return "Cocina";
+	else if (players[n].x > 12 && players[n].x < 26 && players[n].y >19)
+		return "Comedor";
+	else if (players[n].x > 29 && players[n].y > 21)
+		return "Salon";
+	else
+		return "NONE";
+}
+
 
 void revelarPista()
 {
@@ -305,11 +346,121 @@ void revelarPista()
 	comando >> pistaRevelada;
 	std::cout << pistaRevelada;
 	comando.clear();
-}
 
-void recibirComando()
+}
+void enviarMov()
+{
+	comando.clear();
+	comandServer = 2;
+	while (event.key.code != sf::Keyboard::Enter)
+	{
+		/*if (event.key.code != sf::Keyboard::Enter)
+			break;*/
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+			break;
+	}
+	std::cout << "La pos es: "<< g.playerX << g.playerY << std::endl;
+	comando << comandServer << g.playerX << g.playerY;
+	socket.send(comando);
+	comando.clear();
+
+}
+void deduccion()
+{
+	comandServer = 3;
+	comando.clear();
+	std::string arma, sala, personaje;
+	sala = habitacion();
+	if (sala == "NONE")
+	{
+		std::cout << "Necesitas estar en una sala para hacer una deducción"  << std::endl;
+	}
+	else
+	{
+		std::cout << "Haz tu deduccion: " << std::endl;
+		std::cout << "Sala: " << sala << std::endl;
+		std::cout << "ARMA.Elige entre Candelabro | Cuerda | Punal | Pistola | Tuberia | Herramienta." << std::endl;
+		do
+		{
+			std::cout << "Introduce el nombre correcto" << std::endl;
+		  std::cin >> arma;
+		  
+		} while (arma != "Candelabro" && arma != "Cuerda" && arma != "Punal" && arma != "Pistola" && arma != "Tuberia" && arma != "Herramienta");
+		
+		
+		std::cout << "PERSONAJE. Elige entre Amapola | Rubio | Orquidea | Celeste | Prado | Mora. " << std::endl;
+		while (personaje != "Amapola" && personaje != "Rubio" && personaje != "Orquidea" &&  personaje != "Celeste" && personaje != "Prado" && personaje != "Mora")
+		{
+			std::cout << "Introduce el nombre correcto" << std::endl;
+			std::cin >> personaje;
+		}
+
+		comando << comandServer << arma << sala << personaje;
+		socket.send(comando);
+		comando.clear();
+		
+	}
+	
+}
+void actualizarPos()
 {
 	
+	float x, y;
+	x = g.playerX;
+	y = g.playerY;
+	comando >> n >> x >> y;
+	players[n].x = x;
+	players[n].y = y;
+	comando.clear();
+	std::cout << "posicion actualizada" << std::endl;
+	
+}
+void printDeduccion()
+{
+	std::string deduccionPlayer;
+	comando >> deduccionPlayer;
+	std::cout << deduccionPlayer << std::endl;
+	comando.clear();
+}
+void opcionesDesmentir()
+{
+	std::string opcion1, opcion2, opcion3;
+	std::string eleccion;
+	comando >> opcion1 >> opcion2 >> opcion3;
+	comando.clear();
+	std::cout << "Escoge la carta que quieras mostrar: " << opcion1 << " | " << opcion2 << " | "<< opcion3 << std::endl;
+	do 
+	{
+		std::cout << "Introduce una de las opciones" << std::endl;
+		std::cin >> eleccion;
+	} while (eleccion != opcion1 && eleccion != opcion2 && eleccion != opcion3);
+	comando.clear();
+	comandServer = 4 ;
+	comando << comandServer << eleccion;
+	socket.send(comando);
+	std::cout << "Enviado un " << comandServer << std::endl;
+
+	
+}
+void nadie()
+{
+	std::string mensaje;
+	comando >> mensaje;
+	std::cout << mensaje << std::endl;
+	comando.clear();
+}
+void printCarta()
+{
+	std::string carta;
+	comando >> carta;
+	std::cout << "Se muestra la carta: " << carta;
+	comando.clear();
+}
+void recibirComando()
+{
+	while (!end_game)
+	{
+
 		socket.receive(comando);
 		comando >> comandClient;
 		switch (comandClient)
@@ -320,35 +471,50 @@ void recibirComando()
 			break;
 		case 2: //Revelar pista
 			revelarPista();
-
-
+			enviarMov();
 			break;
+		case 3: //Actualizar pos
+			actualizarPos();
+			break;
+		case 4: //Deduccion
+			deduccion();
+			break;
+		case 5: //Printar deduccion
+			printDeduccion();
+			break;
+		case 6 : //Opciones a elegir
+			opcionesDesmentir();
+			
+			break;
+		case 7: //Nadie tiene ninguna
+			nadie();
+			break;
+		case 8: //Printa la carta escogida por la pantalla de todos los jugadores
+			printCarta();
 		}
+	}
 	
 }
 
-void wait()
-{
-	recibirComando();
-	
 
 
-		/*sf::Packet pistaRevelar;
-		socket.receive(pistaRevelar);
-		std::string pistaRevelada;
-		pistaRevelar >> pistaRevelada;
-		std::cout << pistaRevelada;*/
-	
-}
+
 
 int main()
 {
-	g.DrawDungeon();
 	inicioPartida();
-	while(!end_game)
-	{
-	 recibirComando();
-	}
+
+	//recieve;
+	std::thread recieve(recibirComando);
+
+	g.DrawDungeon(socket);
+
+	
+	
+
+	
+
+	
 	
 	/*wait();
 	turno();*/
