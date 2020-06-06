@@ -1,8 +1,7 @@
-﻿  Source.cpp
-c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\redes\cluedo\xarxescluedo\platilla_3projects (1)\gameserver\source.cpp(118): warning C4551: la llamada a la función no tiene lista de argumentos
-c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\redes\cluedo\xarxescluedo\platilla_3projects (1)\gameserver\source.cpp(219): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
-c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\redes\cluedo\xarxescluedo\platilla_3projects (1)\gameserver\source.cpp(245): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
-c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\redes\cluedo\xarxescluedo\platilla_3projects (1)\gameserver\source.cpp(311): warning C4267: '=': conversión de 'size_t' a 'int'; posible pérdida de datos
-c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\redes\cluedo\xarxescluedo\platilla_3projects (1)\gameserver\source.cpp(573): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
-  GameServer.vcxproj -> C:\Users\PC NUEVO\Desktop\Oscar\0.CLASE\4rt Curso\Redes\Cluedo\XarxesCluedo\Platilla_3Projects (1)\x64\Debug\GameServer.exe
-  GameServer.vcxproj -> C:\Users\PC NUEVO\Desktop\Oscar\0.CLASE\4rt Curso\Redes\Cluedo\XarxesCluedo\Platilla_3Projects (1)\x64\Debug\GameServer.pdb (Partial PDB)
+﻿  Server.cpp
+c:\users\itus9\onedrive\documentos\enti\3r\redes\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameserver\server.cpp(117): warning C4551: la llamada a la función no tiene lista de argumentos
+c:\users\itus9\onedrive\documentos\enti\3r\redes\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameserver\server.cpp(231): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+c:\users\itus9\onedrive\documentos\enti\3r\redes\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameserver\server.cpp(257): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+c:\users\itus9\onedrive\documentos\enti\3r\redes\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameserver\server.cpp(323): warning C4267: '=': conversión de 'size_t' a 'int'; posible pérdida de datos
+c:\users\itus9\onedrive\documentos\enti\3r\redes\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameserver\server.cpp(588): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
+  GameServer.vcxproj -> C:\Users\itus9\OneDrive\Documentos\ENTI\3r\Redes\XarxesCluedo\AA3_PracticaTCP_OscarHidalgoEduardoFernandezAlbertGarcia\x64\Debug\GameServer.exe
