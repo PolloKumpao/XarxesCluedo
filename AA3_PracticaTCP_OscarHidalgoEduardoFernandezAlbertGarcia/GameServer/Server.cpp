@@ -23,6 +23,10 @@ std::list<carta> crimen;
 //std::list<PlayerInfo> listaPlayers;
 std::vector<PlayerInfo> listaPlayers;
 std::list<sf::TcpSocket*>::iterator jugadorActual;
+std::list<sf::TcpSocket*>::iterator jugadorAux;
+
+
+
 int id_jugadorActual;
 sf::Packet comando;
 int comandServer;
@@ -133,15 +137,17 @@ void enviarRecibirPista()
 		comando << HEAD::REVELARPISTA << pistaFinal;
 	}
 
+	(*jugadorActual)->send(comando);
 	//posible sendALL
-	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	/*for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
 	{
 		(*it)->send(comando);
-	}
+	}*/
 }
 
 void tirarDados()
 {
+	end_turno = false;
 	comando.clear();
 	
 
@@ -189,8 +195,7 @@ void actualizarPos()
 	float x;
 	float y;
 	comando >> x >> y;
-	x = listaPlayers[n].x;
-	y = listaPlayers[n].y;
+	 
 
 	comando.clear();
 
@@ -203,6 +208,7 @@ void actualizarPos()
 	comando.clear();
 	comando << HEAD::DEDUCCION;
 	(*jugadorActual)->send(comando);
+	std::cout <<"Envio deduccion" << std::endl;
 }
 
 void EnviarAll(sf::Packet p, sf::TcpSocket* id)
@@ -413,7 +419,7 @@ void ControlServidor()
 				}
 			}
 		}
-		if (jugadores.size() == 3 && !inicio)
+		if (jugadores.size() == 3 || inicio)
 		{
 			inicioPartida();
 			std::cout << "Empieza la partida: " << std::endl;
@@ -474,7 +480,11 @@ void desmentir()
 
 			if (tieneAlguna)
 			{
+				std::cout << "Enviando desmentir" << std::endl;
 				(*it)->send(comando);
+				jugadorAux = jugadorActual;
+				jugadorActual = it;
+				comando.clear();
 				break;
 			}
 		}
@@ -497,6 +507,9 @@ void desmentir()
 
 void enseñarCarta()
 {
+
+	std::cout << "Enseña carta" << std::endl;
+	jugadorActual = jugadorAux;
 	std::string carta;
 	comando >> carta;
 	comando.clear();
@@ -506,30 +519,77 @@ void enseñarCarta()
 	{
 		(*it)->send(comando);
 	}
+	end_turno = true;
+}
+
+void comprobar() 
+{
+	std::string arma, sala, personaje;
+	int tres = 0;
+	comando >> arma >> sala >> personaje;
+	for (std::list<carta>::iterator it = crimen.begin(); it != crimen.end(); it++)
+	{
+		if ((*it).nombre == arma || (*it).nombre == sala || (*it).nombre == personaje)
+		{
+			tres++;
+		}
+	}
+	if (tres == 3)
+	{
+		std::cout << "HAS GANADO" << std::endl;
+	}
+	else
+	{
+		std::cout << "No es correcto" << std::endl;
+		comando.clear();
+		comando << HEAD::RESOLUCIONCORRECTA;
+		(*jugadorActual)->send(comando);
+		comando.clear();
+		comando << HEAD::RESOLVERSC;
+		//jugadores.begin();
+		jugadorActual++;
+		
+		if (jugadorActual == jugadores.end())
+			jugadorActual = jugadores.begin();
+
+			(*jugadorActual)->send(comando);
+		
+	}
 }
 
 void recibirPacket()
 {
 	
-	(*jugadorActual)->receive(comando);
+	
+		(*jugadorActual)->receive(comando);
+	
+	
 	int temp;
 	
 	comando >> temp;
 	c = (HEAD)temp;
-	std::cout << "He recibido " << comandServer;
+	//std::cout << "He recibido " << comandServer;
 	switch (c)
 	{
 	case HEAD::ELEGIRPISTA:    //Recibir Pista
+		std::cout << "Recibo ELEGIRPISTA" << std::endl;
 		enviarRecibirPista();
 		break;
 	case HEAD::MOVIMIENTO:		//Recibir pos
+		std::cout << "Recibo MOVIMIENTO" << std::endl;
 		actualizarPos();
 		break;
 	case HEAD::DEDUCCION:     //Recibir deduccion
+		std::cout << "Recibo DEDUCCION" << std::endl;
 		desmentir();
 		break;
 	case HEAD::DESMENTIDO:
+		std::cout << "Recibo DESMENTIDO" << std::endl;
 		enseñarCarta();
+		break;
+	case HEAD::RESOLVERCS:
+		std::cout << "Recibo RESOLVERCS" << std::endl;
+		comprobar();
 		break;
 	}
 }

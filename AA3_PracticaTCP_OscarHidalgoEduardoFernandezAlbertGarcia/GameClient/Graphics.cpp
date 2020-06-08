@@ -6,6 +6,7 @@
 
 Graphics::Graphics()
 {
+	
 
 	Sala invernadero("Invernadero", 0, 0, 8, 10, sf::Color::Yellow);
 	Sala salaBillar("Sala de billar", 12, 0, 6, 10, sf::Color::Red);
@@ -63,6 +64,7 @@ bool isInRoom(float plx, float ply)
 
 void Graphics::DrawDungeon(sf::TcpSocket &socket)
 {
+	yo = ListaJugadores.begin();
 	sf::Packet packet;
 	sf::RenderWindow _window(sf::VideoMode(800, 600), "Ventanita");
 	sf::RectangleShape shape(sf::Vector2f(SIZE, SIZE));
@@ -76,9 +78,40 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 	float playerY_init = playerY;
 
 	//PLAYER
+	
+	std::vector <sf::RectangleShape> cuadradoJugadores;
+	
+	for (yo; ListaJugadores.end() != yo; yo++)
+	{
+		if (yo->id == id)
+		{
+			break;
+		}
+	}
+
 	sf::RectangleShape player(sf::Vector2f(SIZE, SIZE));
-	player.setOutlineColor(sf::Color::Black);
-	player.setOutlineThickness(1.f);
+	/*player.setOutlineColor(sf::Color::Black);
+	player.setOutlineThickness(1.f);*/
+	for (int i = 0; i < ListaJugadores.size() ; i++ )
+	{
+		
+		switch (i)
+		{
+		case 0:player.setOutlineColor(sf::Color::Black);
+			break;
+		case 1:player.setOutlineColor(sf::Color::Blue);
+			break;
+		case 2:player.setOutlineColor(sf::Color::Green);
+			break;
+		case 3:player.setOutlineColor(sf::Color::Magenta);
+			break;
+		case 4:player.setOutlineColor(sf::Color::Yellow);
+			break;
+		}
+		player.setOutlineThickness(1.f);
+		cuadradoJugadores.push_back(player);
+	}
+	std::cout << cuadradoJugadores.size() << std::endl;
 	while (_window.isOpen())
 	{
 		sf::Event event;
@@ -100,12 +133,12 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 				}
 				if (event.key.code == sf::Keyboard::Left)
 				{
-					if (playerX > 0 && c_movements < movements)
+					if (yo->x > 0 && c_movements < movements)
 					{
-						if (!(playerX == 26 && playerY < 18 && playerY>11))
+						if (!(yo->x == 26 && yo->y < 18 && yo->y>11))
 						{
-							playerX--;
-							if (!isInRoom(playerX, playerY))
+							yo->x--;
+							if (!isInRoom(yo->x, yo->y))
 								c_movements++;
 						}
 					}
@@ -113,12 +146,12 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 				}
 				else if (event.key.code == sf::Keyboard::Up)
 				{
-					if (playerY > 0 && c_movements < movements)
+					if (yo->y > 0 && c_movements < movements)
 					{
-						if (!(playerY == 18 && playerX > 11 && playerX < 26))
+						if (!(yo->y == 18 && yo->x > 11 && yo->x < 26))
 						{
-							playerY--;
-							if (!isInRoom(playerX, playerY))
+							yo->y--;
+							if (!isInRoom(yo->x, yo->y))
 								c_movements++;
 
 						}
@@ -128,12 +161,12 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 
 				else if (event.key.code == sf::Keyboard::Right)
 				{
-					if (playerX < 39 && c_movements < movements)
+					if (yo->x < 39 && c_movements < movements)
 					{
-						if (!(playerX == 11 && playerY < 18 && playerY>11))
+						if (!(yo->x == 11 && yo->y < 18 && yo->y>11))
 						{
-							playerX++;
-							if (!isInRoom(playerX, playerY))
+							yo->x++;
+							if (!isInRoom(yo->x, yo->y))
 								c_movements++;
 						}
 					}
@@ -141,12 +174,12 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 				}
 				else if (event.key.code == sf::Keyboard::Down)
 				{
-					if (playerY < 29 && c_movements < movements)
+					if (yo->y < 29 && c_movements < movements)
 					{
-						if (!(playerY == 11 && playerX > 11 && playerX < 26))
+						if (!(yo->y == 11 && yo->x > 11 && yo->x < 26))
 						{
-							playerY++;
-							if (!isInRoom(playerX, playerY))
+							yo->y++;
+							if (!isInRoom(yo->x, yo->y))
 								c_movements++;
 						}
 					}
@@ -154,8 +187,8 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 				}
 				else if (event.key.code == sf::Keyboard::BackSpace)
 				{
-					playerX = playerX_init;
-					playerY = playerY_init;
+					yo->x = playerX_init;
+					yo->y = playerY_init;
 					c_movements = 0;
 					std::cout << "Reset";
 					std::cout << c_movements;
@@ -170,11 +203,12 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 
 		}
 		_window.clear();
+		std::vector<PlayerInfo>::iterator ot = ListaJugadores.begin();
 		for (int i = 0; i < W_WINDOW_TITLE; i++)
 		{
 			for (int j = 0; j < H_WINDOW_TITLE; j++)
 			{
-
+				
 				shape.setFillColor(sf::Color(90, 90, 90, 255));
 				player.setFillColor(sf::Color(255, 0, 0, 255));
 
@@ -182,28 +216,52 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 				player.setPosition(sf::Vector2f(playerX*SIZE, playerY*SIZE));
 
 				_window.draw(shape);
+				
+				
+				for (std::vector<sf::RectangleShape>::iterator it = cuadradoJugadores.begin(); cuadradoJugadores.end() != it; it++)
+				{
+					shape.setFillColor(sf::Color(90, 90, 90, 255));
+					it->setFillColor(sf::Color(255, 0, 0, 255));
+					
+					shape.setPosition(sf::Vector2f(i*SIZE, j*SIZE));
+					it->setPosition(sf::Vector2f(ot->x*SIZE,ot->y*SIZE));
+
+					_window.draw(shape);
+					ot++;
+				}
+				ot = ListaJugadores.begin();
+				
 			}
 		}
+		//for (int i = 0; i < W_WINDOW_TITLE; i++)
+		//{
+		//	for (int j = 0; j < H_WINDOW_TITLE; j++)
+		//	{
+
+		//		shape.setFillColor(sf::Color(90, 90, 90, 255));
+		//		player.setFillColor(sf::Color(255, 0, 0, 255));
+
+		//		shape.setPosition(sf::Vector2f(i*SIZE, j*SIZE));
+		//		player.setPosition(sf::Vector2f(playerX*SIZE, playerY*SIZE));
+
+		//		_window.draw(shape);
+		//	}
+		//}
+
 
 		for (size_t i = 0; i < salas.size(); i++)
 		{
 			salas[i].Draw(_window);
-			_window.draw(player);
+			for (std::vector<sf::RectangleShape>::iterator it = cuadradoJugadores.begin(); cuadradoJugadores.end() != it; it++)
+			{
+				_window.draw(*it);
+			}
+			/*salas[i].Draw(_window);
+			_window.draw(player);*/
 		}
 		centroMensajes.Draw(_window);
 
-		/*sf::Vector2f position;
-		position.x = 0; position.y = 0;
-		shape.setFillColor(sf::Color::Blue);
-		shape.setFillColor(sf::Color(0, 0, 255, 255));
-		shape.setPosition(sf::Vector2f(position.x*SIZE, position.y*SIZE));
-		_window.draw(shape);
-
-		position.x = W_WINDOW_TITLE - 1; position.y = H_WINDOW_TITLE - 1;
-		shape.setFillColor(sf::Color::Green);
-		shape.setFillColor(sf::Color(255, 255, 0, 255));
-		shape.setPosition(sf::Vector2f(position.x*SIZE, position.y*SIZE));
-		_window.draw(shape);*/
+		
 
 		_window.display();
 	}

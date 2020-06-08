@@ -4,6 +4,9 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML\Network.hpp>
 #include <array>
+#include <vector>
+#include <PlayerInfo.h>
+
 #define SIZE 20.f
 ///TAMAÑO EN PX DE LA VENTANA
 #define W_WINDOW_PX 800
@@ -67,6 +70,11 @@ public:
 	Graphics();
 	float playerX = 10.f;
 	float playerY = 10.f;
+	
+	int id;
+
+	std::vector <PlayerInfo> ListaJugadores;
+	std::vector <PlayerInfo>::iterator yo;
 	int	movements;
 	void DrawDungeon(sf::TcpSocket &socket);
 	~Graphics();

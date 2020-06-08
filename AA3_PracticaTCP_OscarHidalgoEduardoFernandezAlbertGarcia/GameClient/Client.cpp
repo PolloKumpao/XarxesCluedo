@@ -4,7 +4,6 @@
 #include<thread>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <fcntl.h>
 #include "Graphics.h"
 
@@ -74,6 +73,7 @@ void inicioPartida()
 		packId >> id;
 		std::cout << "Se ha establecido conexion\n";
 		std::cout << "Tu id de jugador es: " << id << std::endl;
+		g.id = id;
 	}
 
 	std::string str = "hola";
@@ -221,8 +221,10 @@ void inicioPartida()
 			}
 			g.playerX = player.x;
 			g.playerY = player.y;
+			
 			packHabitacion >> player.id;
 			players.push_back(player);
+			g.ListaJugadores.push_back(player);
 		}
 		for (int i = 0; i < numPlayers; ++i)
 		{
@@ -363,17 +365,65 @@ void enviarMov()
 			break;
 	}
 
-	comando << HEAD::MOVIMIENTO << g.playerX << g.playerY;
+	comando << HEAD::MOVIMIENTO << g.yo->x << g.yo->y;
 	socket.send(comando);
 	comando.clear();
 
 }
+void resolver()
+{
+	comando.clear();
+	std::string arma, sala, personaje;
+
+
+		
+
+		
+			std::cout << "Resuelve: " << std::endl;
+			
+			do
+			{
+				std::cout << "Sala. Elige entre Biblioteca | Invernadero | Billar | Estudio | Baile | Vestibulo | Cocina  " << sala << std::endl;
+				std::cout << "Introduce el nombre correcto" << std::endl;
+				std::cin >> sala;
+
+			} while (sala != "Biblioteca" && sala != "Invernadero" && sala != "Billar" && sala != "Estudi" && sala != "Baile" && sala != "Vestibulo" && sala != "Cocina");
+
+			
+			do
+			{
+				std::cout << "ARMA. Elige entre Candelabro | Cuerda | Punal | Pistola | Tuberia | Herramienta." << std::endl;
+				std::cout << "Introduce el nombre correcto" << std::endl;
+				std::cin >> arma;
+
+			} while (arma != "Candelabro" && arma != "Cuerda" && arma != "Punal" && arma != "Pistola" && arma != "Tuberia" && arma != "Herramienta");
+
+
+			
+			while (personaje != "Amapola" && personaje != "Rubio" && personaje != "Orquidea" &&  personaje != "Celeste" && personaje != "Prado" && personaje != "Mora")
+			{
+				std::cout << "PERSONAJE. Elige entre Amapola | Rubio | Orquidea | Celeste | Prado | Mora. " << std::endl;
+				std::cout << "Introduce el nombre correcto" << std::endl;
+				std::cin >> personaje;
+			}
+
+			comando << HEAD::RESOLVERCS << arma << sala << personaje;
+			socket.send(comando);
+			comando.clear();
+}
+	
+
 void deduccion()
 {
 	
 	comando.clear();
-	std::string arma, sala, personaje;
-	do {
+	std::string arma, sala, personaje,opcion;
+
+	std::cout << "Si quieres Resolver escribe RESOLVER || Si quieres hacer una deducción Escribe DEDUCCION :" << std::endl;
+	std::cin >> opcion;
+	if (opcion == "DEDUCCION")
+	{
+
 		sala = habitacion();
 		if (sala == "NONE")
 		{
@@ -405,18 +455,28 @@ void deduccion()
 			comando.clear();
 
 		}
-	} while (sala != "NONE");
+	}
+	else if (opcion == "RESOLVER")
+	{
+		resolver();
+	}
+	else
+	{
+		deduccion();
+	}
 
 }
 void actualizarPos()
 {
 
 	float x, y;
-	x = g.playerX;
-	y = g.playerY;
+	
 	comando >> n >> x >> y;
 	players[n].x = x;
 	players[n].y = y;
+	g.ListaJugadores[n].x = x;
+	g.ListaJugadores[n].y = y;
+
 	comando.clear();
 }
 
@@ -444,6 +504,8 @@ void opcionesDesmentir()
 
 	comando << HEAD::DESMENTIDO << eleccion;
 	socket.send(comando);
+	std::cout << "Desmentido enviado" << std::endl;
+	comando.clear();
 }
 void nadie()
 {
@@ -471,12 +533,14 @@ void recibirComando()
 		{
 		case HEAD::LANZADADOS: //Recibes dados
 		{
+			std::cout << "Recibo LANZADADOS" << std::endl;
 			turno();
 			break;
 		}
 
 		case HEAD::REVELARPISTA: //Revelar pista
 		{
+			std::cout << "Recibo REVELARPISTA" << std::endl;
 			revelarPista();
 			enviarMov();
 			break;
@@ -484,24 +548,29 @@ void recibirComando()
 
 		case HEAD::NUEVAPOSICION: //Actualizar pos
 		{
+			std::cout << "Recibo NUEVAPOSICION" << std::endl;
 			actualizarPos();
 			break;
 		}
 
 		case HEAD::DEDUCCION: //Deduccion
 		{
+			std::cout << "Recibo DEDUCCION" << std::endl;
 			deduccion();
+			
 			break;
 		}
 
 		case HEAD::ENVIOSUPOSICION: //Printar deduccion
 		{
+			std::cout << "Recibo ENVIOSUPOSICION" << std::endl;
 			printDeduccion();
 			break;
 		}
 
 		case HEAD::DESMENTIRSC: //Opciones a elegir
 		{
+			std::cout << "Recibo DESMENTIRSC" << std::endl;
 			opcionesDesmentir();
 
 			break;
@@ -509,13 +578,26 @@ void recibirComando()
 
 		case HEAD::NADIE: //Nadie tiene ninguna
 		{
+			std::cout << "Recibo NADIE" << std::endl;
 			nadie();
 			break;
 		}
 
 		case HEAD::DESMENTIDOGENERAL: //Printa la carta escogida por la pantalla de todos los jugadores
 		{
+			std::cout << "Recibo DESMENTIDOGENERAL" << std::endl;
 			printCarta();
+			break;
+		}
+		case HEAD::RESOLVERSC: 
+		{
+			std::cout << "Recibo RESOLVERSC" << std::endl;
+			resolver();
+			break;
+		}
+		case HEAD::RESOLUCIONCORRECTA:
+		{
+			std::cout << "No es correcto" << std::endl;
 			break;
 		}
 
