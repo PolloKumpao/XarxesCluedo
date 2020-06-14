@@ -83,7 +83,6 @@ void inicioPartida()
 		socket.receive(packetMano);
 		packetMano >> size;
 
-		std::cout << size << std::endl;
 		for (int i = 0; i < size; i++)
 		{
 			packetMano >> cartaRepartida;
@@ -157,9 +156,12 @@ void inicioPartida()
 				break;
 			}
 		}
+
+		std::cout << std::endl;
+		std::cout << "Tus cartas son las siguientes: " << std::endl;
 		for (int i = 0; i < mano.size(); i++)
 		{
-			std::cout << mano[i].nombre << std::endl;
+			std::cout  <<"-"<< mano[i].nombre << std::endl;
 		}
 
 
@@ -226,10 +228,10 @@ void inicioPartida()
 			players.push_back(player);
 			g.ListaJugadores.push_back(player);
 		}
-		for (int i = 0; i < numPlayers; ++i)
+		/*for (int i = 0; i < numPlayers; ++i)
 		{
 			std::cout << "El jugador " << players[i].id << " comienza en la habitacion " << players[i].habitacion << std::endl;
-		}
+		}*/
 		str = "Fin Inicio";
 		/*std::getline(std::cin, str);
 		sf::Packet packet;
@@ -245,7 +247,8 @@ void inicioPartida()
 
 void turno()
 {
-	std::cout << "***INICIO TURNO***" << std::endl;
+	std::cout << std::endl;
+	std::cout << "   ****INICIO TURNO****" << std::endl;
 	std::cout << "Tiras los dados..." << std::endl;
 	comando >> dados >> pista >> tipoPista;
 	g.movements = dados;
@@ -292,7 +295,7 @@ void turno()
 			break;
 		}
 	}
-	std::cout << "Muevete con las flechas. Confirma tu posicion final con 'barra espaciadora' o vuelve a elegir los movimientos con la tecla 'R'. " << std::endl;
+	std::cout << "Muevete con las flechas. Confirma tu posicion final con 'barra espaciadora' o vuelve a elegir los movimientos con la tecla 'Retroceso'. " << std::endl;
 	comando.clear();
 
 	
@@ -385,7 +388,7 @@ void resolver()
 
 		
 
-		
+			std::cout << std::endl;
 			std::cout << "Resuelve: " << std::endl;
 			
 			do
@@ -519,7 +522,7 @@ void opcionesDesmentir()
 
 	comando << HEAD::DESMENTIDO << eleccion;
 	socket.send(comando);
-	std::cout << "Desmentido enviado" << std::endl;
+	//std::cout << "Desmentido enviado" << std::endl;
 	comando.clear();
 }
 void nadie()
@@ -540,8 +543,8 @@ void finpartida()
 {
 	std::string ganador;
 	comando >> ganador;
-	std::cout << "                                 ***********La partida ha acabado************" << std::endl;
-	std::cout << "Ha ganado " << ganador << std::endl;
+	std::cout << "                    ******La partida ha acabado******" << std::endl;
+	std::cout << "Ha ganado el jugador con el nick: " << ganador << std::endl;
 
 }
 void recibirComando()
@@ -558,14 +561,14 @@ void recibirComando()
 		{
 		case HEAD::LANZADADOS: //Recibes dados
 		{
-			std::cout << "Recibo LANZADADOS" << std::endl;
+			//std::cout << "Recibo LANZADADOS" << std::endl;
 			turno();
 			break;
 		}
 
 		case HEAD::REVELARPISTA: //Revelar pista
 		{
-			std::cout << "Recibo REVELARPISTA" << std::endl;
+			//std::cout << "Recibo REVELARPISTA" << std::endl;
 			revelarPista();
 			enviarMov();
 			break;
@@ -573,14 +576,14 @@ void recibirComando()
 
 		case HEAD::NUEVAPOSICION: //Actualizar pos
 		{
-			std::cout << "Recibo NUEVAPOSICION" << std::endl;
+			//std::cout << "Recibo NUEVAPOSICION" << std::endl;
 			actualizarPos();
 			break;
 		}
 
 		case HEAD::DEDUCCION: //Deduccion
 		{
-			std::cout << "Recibo DEDUCCION" << std::endl;
+			//std::cout << "Recibo DEDUCCION" << std::endl;
 			deduccion();
 			
 			break;
@@ -588,14 +591,14 @@ void recibirComando()
 
 		case HEAD::ENVIOSUPOSICION: //Printar deduccion
 		{
-			std::cout << "Recibo ENVIOSUPOSICION" << std::endl;
+			//std::cout << "Recibo ENVIOSUPOSICION" << std::endl;
 			printDeduccion();
 			break;
 		}
 
 		case HEAD::DESMENTIRSC: //Opciones a elegir
 		{
-			std::cout << "Recibo DESMENTIRSC" << std::endl;
+			//std::cout << "Recibo DESMENTIRSC" << std::endl;
 			opcionesDesmentir();
 
 			break;
@@ -603,26 +606,26 @@ void recibirComando()
 
 		case HEAD::NADIE: //Nadie tiene ninguna
 		{
-			std::cout << "Recibo NADIE" << std::endl;
+			//std::cout << "Recibo NADIE" << std::endl;
 			nadie();
 			break;
 		}
 
 		case HEAD::DESMENTIDOGENERAL: //Printa la carta escogida por la pantalla de todos los jugadores
 		{
-			std::cout << "Recibo DESMENTIDOGENERAL" << std::endl;
+			//std::cout << "Recibo DESMENTIDOGENERAL" << std::endl;
 			printCarta();
 			break;
 		}
 		case HEAD::RESOLVERSC: 
 		{
-			std::cout << "Recibo RESOLVERSC" << std::endl;
+			//std::cout << "Recibo RESOLVERSC" << std::endl;
 			resolver();
 			break;
 		}
 		case HEAD::RESOLUCIONINCORRECTA:
 		{
-			std::cout << "No es correcto" << std::endl;
+			//std::cout << "No es correcto" << std::endl;
 			break;
 		}
 		case HEAD::RESOLUCIONCORRECTA:

@@ -135,7 +135,7 @@ void enviarRecibirPista()
 		}
 		else
 		{
-			pistaFinal = "El jugador con el Nick:  " + playerPista.name + " tiene la carta" + pista;
+			pistaFinal = "El jugador con el Nick:  " + playerPista.name + " tiene la carta  " + pista;
 			comando << HEAD::REVELARPISTA << pistaFinal;
 		}
 
@@ -145,7 +145,7 @@ void enviarRecibirPista()
 		comando.clear();
 		std::string nula;
 		nula = "" ;
-		std::cout << "REVELARPISTA ENVIADO" << std::endl;
+	//	std::cout << "REVELARPISTA ENVIADO" << std::endl;
 		comando << HEAD::REVELARPISTA << nula;
 		(*jugadorActual)->send(comando);
 		comando.clear();
@@ -304,15 +304,16 @@ std::list<carta> crearCrimen(std::list<carta> &b)
 	r = rand() % 6;
 	std::advance(it, r);
 	c.push_back(*it);
-	
-	std::cout << it->nombre << std::endl;
+	std::cout << std::endl;
+	std::cout << "El crimen que se tiene que acertar es el siguiente" << std::endl;
+	std::cout <<"-"<< it->nombre << std::endl;
 	b.erase(it);
 
 	r = rand() % 5 + 6;
 	it = b.begin();
 	std::advance(it, r);
 	c.push_back(*it);
-	std::cout << it->nombre << std::endl;
+	std::cout << "-" << it->nombre << std::endl;
 	b.erase(it);
 
 
@@ -320,7 +321,8 @@ std::list<carta> crearCrimen(std::list<carta> &b)
 	it = b.begin();
 	std::advance(it, r);
 	c.push_back(*it);
-	std::cout << it->nombre << std::endl;
+	std::cout << "-" << it->nombre << std::endl;
+	std::cout <<std::endl;
 	b.erase(it);
 	return c;
 
@@ -497,7 +499,7 @@ void desmentir()
 
 			if (tieneAlguna)
 			{
-				std::cout << "Enviando desmentir" << std::endl;
+				//std::cout << "Enviando desmentir" << std::endl;
 				(*it)->send(comando);
 				jugadorAux = jugadorActual;
 				jugadorActual = it;
@@ -509,7 +511,7 @@ void desmentir()
 	}
 	if (!tieneAlguna)
 	{
-		std::string nadie = "Ningun jugador tiene ninguna de las 3 cartas";
+		std::string nadie = "Ningun jugador tiene ninguna de las 3 cartas. ";
 		for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
 		{
 			comando.clear();
@@ -526,7 +528,7 @@ void desmentir()
 void enseñarCarta()
 {
 
-	std::cout << "Enseña carta" << std::endl;
+	std::cout << "Enseña carta " << std::endl;
 	jugadorActual = jugadorAux;
 	std::string carta;
 	comando >> carta;
@@ -556,7 +558,7 @@ void comprobar()
 	{
 		std::string nombre;
 		comando.clear();
-		std::cout << "HAS GANADO" << std::endl;
+		std::cout << " ¡HAS GANADO! " << std::endl;
 		comando << HEAD::RESOLUCIONCORRECTA;
 		for (std::vector<PlayerInfo>::iterator it = listaPlayers.begin(); it != listaPlayers.end(); it++)
 		{
@@ -573,7 +575,7 @@ void comprobar()
 	}
 	else
 	{
-		std::cout << "No es correcto" << std::endl;
+		std::cout << "No es correcto... " << std::endl;
 		comando.clear();
 		comando << HEAD::RESOLUCIONINCORRECTA;
 		(*jugadorActual)->send(comando);
@@ -605,23 +607,23 @@ void recibirPacket()
 	switch (c)
 	{
 	case HEAD::ELEGIRPISTA:    //Recibir Pista
-		std::cout << "Recibo ELEGIRPISTA" << std::endl;
+		//std::cout << "Recibo ELEGIRPISTA" << std::endl;
 		enviarRecibirPista();
 		break;
 	case HEAD::MOVIMIENTO:		//Recibir pos
-		std::cout << "Recibo MOVIMIENTO" << std::endl;
+	//	std::cout << "Recibo MOVIMIENTO" << std::endl;
 		actualizarPos();
 		break;
 	case HEAD::DEDUCCION:     //Recibir deduccion
-		std::cout << "Recibo DEDUCCION" << std::endl;
+		//std::cout << "Recibo DEDUCCION" << std::endl;
 		desmentir();
 		break;
 	case HEAD::DESMENTIDO:
-		std::cout << "Recibo DESMENTIDO" << std::endl;
+		//std::cout << "Recibo DESMENTIDO" << std::endl;
 		enseñarCarta();
 		break;
 	case HEAD::RESOLVERCS:
-		std::cout << "Recibo RESOLVERCS" << std::endl;
+	//	std::cout << "Recibo RESOLVERCS" << std::endl;
 		comprobar();
 		break;
 	case HEAD::ENDTURNO:
@@ -648,7 +650,7 @@ void turno()
 
 void partida()
 {
-	std::cout << "Entro en la partida" << std::endl;
+	//std::cout << "Entro en la partida." << std::endl;
 	std::list<sf::TcpSocket*>::iterator j = jugadores.begin();
 
 

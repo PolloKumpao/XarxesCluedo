@@ -1,40 +1,40 @@
 ﻿  Client.cpp
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(34): warning C4244: '=': conversión de 'int' a 'T'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(34): warning C4244: '=': conversión de 'int' a 'T'; posible pérdida de datos
           with
           [
               T=float
           ]
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(35): warning C4244: '=': conversión de 'int' a 'T'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(35): warning C4244: '=': conversión de 'int' a 'T'; posible pérdida de datos
           with
           [
               T=float
           ]
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(36): warning C4244: '=': conversión de 'int' a 'T'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(36): warning C4244: '=': conversión de 'int' a 'T'; posible pérdida de datos
           with
           [
               T=float
           ]
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(37): warning C4244: '=': conversión de 'int' a 'T'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(37): warning C4244: '=': conversión de 'int' a 'T'; posible pérdida de datos
           with
           [
               T=float
           ]
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(45): warning C4244: 'inicializando': conversión de 'T' a 'int'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(45): warning C4244: 'inicializando': conversión de 'T' a 'int'; posible pérdida de datos
           with
           [
               T=float
           ]
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(45): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(47): warning C4244: 'inicializando': conversión de 'T' a 'int'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(45): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(47): warning C4244: 'inicializando': conversión de 'T' a 'int'; posible pérdida de datos
           with
           [
               T=float
           ]
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(47): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(49): warning C4244: 'argumento': conversión de 'int' a 'T'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(47): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\graphics.h(49): warning C4244: 'argumento': conversión de 'int' a 'T'; posible pérdida de datos
           with
           [
               T=float
           ]
-e:\edufs\documents\onedrive\escritorio\enti_bien\xarxes tercero\cluedo\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\client.cpp(27): warning C4244: 'argumento': conversión de 'float' a 'sf::Int32'; posible pérdida de datos
-  GameClient.vcxproj -> E:\edufs\Documents\OneDrive\Escritorio\Enti_Bien\Xarxes tercero\Cluedo\XarxesCluedo\AA3_PracticaTCP_OscarHidalgoEduardoFernandezAlbertGarcia\x64\Debug\GameClient.exe
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\client.cpp(27): warning C4244: 'argumento': conversión de 'float' a 'sf::Int32'; posible pérdida de datos
+  GameClient.vcxproj -> C:\Users\PC NUEVO\Desktop\Oscar\0.CLASE\4rt Curso\Diseño de niveles\AA2-Produccion\XarxesCluedo\AA3_PracticaTCP_OscarHidalgoEduardoFernandezAlbertGarcia\x64\Debug\GameClient.exe
