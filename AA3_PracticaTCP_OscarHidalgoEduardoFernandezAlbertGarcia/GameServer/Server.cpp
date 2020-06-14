@@ -11,7 +11,7 @@ std::list<sf::TcpSocket*> jugadores;
 
 enum HEAD {
 	START, LANZADADOS, ELEGIRPISTA, REVELARPISTA, MOVIMIENTO, NUEVAPOSICION, DEDUCCION, ENVIOSUPOSICION,
-	DESMENTIRCS, DESMENTIRSC, NADIE, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA
+	DESMENTIRCS, DESMENTIRSC, NADIE, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA, ENDTURNO, RESOLUCIONINCORRECTA, FINPARTIDA
 };
 
 
@@ -68,7 +68,7 @@ void crearBaraja()
 	baraja.push_back(carta(SALA, "Estudio", 21));//21
 
 
-
+	
 }
 void repartirCartas()
 {
@@ -102,42 +102,54 @@ void enviarRecibirPista()
 {
 
 	std::string pista;
+	bool b;
 	//comando.clear();
 	//Recibimos la eleccion de pista del cliente
 	//(*jugadorActual)->receive(comando);
-	comando >> pista;
-	std::cout << "PISTA ELEGIDA: " << pista << std::endl;
-	int i = 0;
+	comando >> b >> pista;
+	if (b) {
+		std::cout << "PISTA ELEGIDA: " << pista << std::endl;
+		int i = 0;
 
-	PlayerInfo playerPista;
-	playerPista.name = "null";
-	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
-	{
-		for (std::list<carta>::iterator ot = listaPlayers[i].mano.begin(); listaPlayers[i].mano.end() != ot; ot++)
+		PlayerInfo playerPista;
+		playerPista.name = "null";
+		for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
 		{
-			if (pista == (*ot).nombre)
+			for (std::list<carta>::iterator ot = listaPlayers[i].mano.begin(); listaPlayers[i].mano.end() != ot; ot++)
 			{
-				playerPista.name = listaPlayers[i].name;
-				exit;
+				if (pista == (*ot).nombre)
+				{
+					playerPista.name = listaPlayers[i].name;
+					exit;
+				}
 			}
+
+			i++;
+		}
+		comando.clear();
+		std::string pistaFinal;
+		if (playerPista.name == "null")
+		{
+			pistaFinal = "Ningun jugador tiene la carta " + pista;
+			comando << HEAD::REVELARPISTA << pistaFinal;
+		}
+		else
+		{
+			pistaFinal = "El jugador con el Nick:  " + playerPista.name + " tiene la carta" + pista;
+			comando << HEAD::REVELARPISTA << pistaFinal;
 		}
 
-		i++;
+		(*jugadorActual)->send(comando);
 	}
-	comando.clear();
-	std::string pistaFinal;
-	if (playerPista.name == "null")
-	{
-		pistaFinal = "Ningun jugador tiene la carta " + pista;
-		comando << HEAD::REVELARPISTA << pistaFinal;
+	else {
+		comando.clear();
+		std::string nula;
+		nula = "" ;
+		std::cout << "REVELARPISTA ENVIADO" << std::endl;
+		comando << HEAD::REVELARPISTA << nula;
+		(*jugadorActual)->send(comando);
+		comando.clear();
 	}
-	else
-	{
-		pistaFinal = "El jugador con el Nick:  " + playerPista.name + " tiene la carta" + pista;
-		comando << HEAD::REVELARPISTA << pistaFinal;
-	}
-
-	(*jugadorActual)->send(comando);
 	//posible sendALL
 	/*for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
 	{
@@ -292,12 +304,15 @@ std::list<carta> crearCrimen(std::list<carta> &b)
 	r = rand() % 6;
 	std::advance(it, r);
 	c.push_back(*it);
+	
+	std::cout << it->nombre << std::endl;
 	b.erase(it);
 
 	r = rand() % 5 + 6;
 	it = b.begin();
 	std::advance(it, r);
 	c.push_back(*it);
+	std::cout << it->nombre << std::endl;
 	b.erase(it);
 
 
@@ -305,6 +320,7 @@ std::list<carta> crearCrimen(std::list<carta> &b)
 	it = b.begin();
 	std::advance(it, r);
 	c.push_back(*it);
+	std::cout << it->nombre << std::endl;
 	b.erase(it);
 	return c;
 
@@ -359,6 +375,7 @@ void ControlServidor()
 
 	// Create a selector
 	sf::SocketSelector selector;
+	
 	// Add the listener to the selector
 	selector.add(listener);
 	// Endless loop that waits for new connections
@@ -501,6 +518,7 @@ void desmentir()
 			(*it)->send(comando);
 
 		}
+		end_turno = true;
 	}
 
 }
@@ -536,13 +554,28 @@ void comprobar()
 	}
 	if (tres == 3)
 	{
+		std::string nombre;
+		comando.clear();
 		std::cout << "HAS GANADO" << std::endl;
+		comando << HEAD::RESOLUCIONCORRECTA;
+		for (std::vector<PlayerInfo>::iterator it = listaPlayers.begin(); it != listaPlayers.end(); it++)
+		{
+			if (id_jugadorActual == (*it).id)
+			{
+				nombre = (*it).name;
+			}
+		}
+		comando << nombre;
+		(*jugadorActual)->send(comando);
+		comando.clear();
+		comando << HEAD::FINPARTIDA<<nombre;
+		EnviarAll(comando,(*jugadorActual));
 	}
 	else
 	{
 		std::cout << "No es correcto" << std::endl;
 		comando.clear();
-		comando << HEAD::RESOLUCIONCORRECTA;
+		comando << HEAD::RESOLUCIONINCORRECTA;
 		(*jugadorActual)->send(comando);
 		comando.clear();
 		comando << HEAD::RESOLVERSC;
@@ -591,6 +624,10 @@ void recibirPacket()
 		std::cout << "Recibo RESOLVERCS" << std::endl;
 		comprobar();
 		break;
+	case HEAD::ENDTURNO:
+		end_turno = true;
+		comando.clear();
+		break;
 	}
 }
 
@@ -613,22 +650,30 @@ void partida()
 {
 	std::cout << "Entro en la partida" << std::endl;
 	std::list<sf::TcpSocket*>::iterator j = jugadores.begin();
-	jugadorActual = j;
 
+
+	jugadorActual = j;
+	int counter = 0;
 
 	while (1)
 	{
 		turno();
-		if (j == jugadores.end())
+	
+		if (counter!=(listaPlayers.size()-1))
 		{
-			j = jugadores.begin();
-		}
-		else
-		{
+			
+			counter++;
 			j++;
 			jugadorActual = j;
 		}
-		if (listaPlayers.size() == n)
+		else
+		{
+			j = jugadores.begin();
+			counter = 0;
+			jugadorActual = j;
+			
+		}
+		if ((listaPlayers.size()-1) == n)
 		{
 			n = 0;
 		}

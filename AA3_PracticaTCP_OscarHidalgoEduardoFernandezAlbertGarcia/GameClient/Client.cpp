@@ -44,7 +44,7 @@ sf::Event event;
 bool end_game = false;
 enum HEAD {
 	START, LANZADADOS, ELEGIRPISTA, REVELARPISTA, MOVIMIENTO, NUEVAPOSICION, DEDUCCION, ENVIOSUPOSICION,
-	DESMENTIRCS, DESMENTIRSC, NADIE, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA
+	DESMENTIRCS, DESMENTIRSC, NADIE, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA, ENDTURNO, RESOLUCIONINCORRECTA, FINPARTIDA
 };
 
 HEAD c;
@@ -245,7 +245,8 @@ void inicioPartida()
 
 void turno()
 {
-
+	std::cout << "***INICIO TURNO***" << std::endl;
+	std::cout << "Tiras los dados..." << std::endl;
 	comando >> dados >> pista >> tipoPista;
 	g.movements = dados;
 	std::cout << "Has sacado un " << dados;
@@ -254,15 +255,13 @@ void turno()
 	if (!pista)
 	{
 		std::cout << " y no tienes pista." << std::endl;
-	}
+		
 
-	else
+	}else
 	{
-
-
 		std::cout << " tienes pista de " << std::endl;
 
-		tipoPista = 0;
+		
 		switch (tipoPista)
 		{
 		case 0:
@@ -296,51 +295,54 @@ void turno()
 	std::cout << "Muevete con las flechas. Confirma tu posicion final con 'barra espaciadora' o vuelve a elegir los movimientos con la tecla 'R'. " << std::endl;
 	comando.clear();
 
-	comando << HEAD::ELEGIRPISTA << pistaElegir;
-	comando << pistaElegir;
+	
+		comando << HEAD::ELEGIRPISTA << pista <<pistaElegir;
+		comando << pistaElegir;
 
-	socket.send(comando);
+		socket.send(comando);
+	
+	
 	comando.clear();
 
 
 
 
-	do {
-		//MOVIMIENTO
-		//send posicion 
+	//do {
+	//	//MOVIMIENTO
+	//	//send posicion 
 
-		if (event.type == sf::Event::KeyPressed)
-			if (event.key.code == sf::Keyboard::K)
-			{
-				estadoPlayer = WAIT;
-			}
-		sf::Packet packPos;
-		packPos << g.playerX << g.playerY;
-		socket.send(packPos);
-		estadoPlayer = WAIT;
-		//ESTADO = WAIT
-	} while (estadoPlayer == TURNO);
+	//	if (event.type == sf::Event::KeyPressed)
+	//		if (event.key.code == sf::Keyboard::K)
+	//		{
+	//			estadoPlayer = WAIT;
+	//		}
+	//	sf::Packet packPos;
+	//	packPos << g.yo->x << g.yo->y;
+	//	socket.send(packPos);
+	//	estadoPlayer = WAIT;
+	//	//ESTADO = WAIT
+	//} while (estadoPlayer == TURNO);
 }
 
 std::string habitacion()
 {
-	if (g.playerX < 8 && g.playerY < 10)
+	if (g.yo->x < 8 && g.yo->y < 10)
 		return "Invernadero";
-	else if (g.playerX > 11 && g.playerX < 18 && g.playerY < 10)
+	else if (g.yo->x > 11 && g.yo->x < 18 && g.yo->y < 10)
 		return "Billar";
-	else if (g.playerX > 21 && g.playerX < 28 && g.playerY < 10)
+	else if (g.yo->x > 21 && g.yo->x < 28 && g.yo->y < 10)
 		return "Biblioteca";
-	else if (g.playerX > 31 && g.playerY < 10)
+	else if (g.yo->x > 31 && g.yo->y < 10)
 		return "Estudio";
-	else if (g.playerX < 8 && g.playerY>11 && g.playerY < 18)
+	else if (g.yo->x < 8 && g.yo->y>11 && g.yo->y < 18)
 		return "Baile";
-	else if (g.playerX > 29 && g.playerY > 11 && g.playerY < 20)
+	else if (g.yo->x > 29 && g.yo->y > 11 && g.yo->y < 20)
 		return "Vestibulo";
-	else if (g.playerX < 10 && g.playerX >19 && g.playerY < 30)
+	else if (g.yo->x < 10 && g.yo->y >19)
 		return "Cocina";
-	else if (g.playerX > 12 && g.playerX < 26 && g.playerY >19)
+	else if (g.yo->x > 12 && g.yo->x < 26 && g.yo->y >19)
 		return "Comedor";
-	else if (g.playerX > 29 && g.playerY > 21)
+	else if (g.yo->x > 29 && g.yo->y > 21)
 		return "Salon";
 	else
 		return "NONE";
@@ -358,7 +360,11 @@ void revelarPista()
 void enviarMov()
 {
 	comando.clear();
-	
+	while (event.key.code != sf::Keyboard::Enter)
+	{
+		if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+			break;
+	}
 	while (event.key.code != sf::Keyboard::Enter)
 	{
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
@@ -367,6 +373,7 @@ void enviarMov()
 
 	comando << HEAD::MOVIMIENTO << g.yo->x << g.yo->y;
 	socket.send(comando);
+	g.movements = 0;
 	comando.clear();
 
 }
@@ -383,11 +390,11 @@ void resolver()
 			
 			do
 			{
-				std::cout << "Sala. Elige entre Biblioteca | Invernadero | Billar | Estudio | Baile | Vestibulo | Cocina  " << sala << std::endl;
+				std::cout << "Sala. Elige entre Biblioteca | Invernadero | Billar | Estudio | Baile | Vestibulo | Cocina | Comedor | Salon " << sala << std::endl;
 				std::cout << "Introduce el nombre correcto" << std::endl;
 				std::cin >> sala;
 
-			} while (sala != "Biblioteca" && sala != "Invernadero" && sala != "Billar" && sala != "Estudi" && sala != "Baile" && sala != "Vestibulo" && sala != "Cocina");
+			} while (sala != "Biblioteca" && sala != "Invernadero" && sala != "Billar" && sala != "Estudio" && sala != "Baile" && sala != "Vestibulo" && sala != "Cocina"&& sala != "Comedor" && sala != "Salon");
 
 			
 			do
@@ -411,27 +418,35 @@ void resolver()
 			socket.send(comando);
 			comando.clear();
 }
-	
+void endturno()
+{
+	std::cout << "***TURNO FINALIZADO***" << std::endl;
+	comando.clear();
+	comando << HEAD::ENDTURNO;
+	socket.send(comando);
+}
 
 void deduccion()
 {
 	
 	comando.clear();
 	std::string arma, sala, personaje,opcion;
+	sala = habitacion();
+	if (sala == "NONE")
+	{
+		std::cout << "Necesitas estar en una sala para hacer una deduccion" << std::endl;
+		endturno();
+	}
+	else
+	{
 
-	std::cout << "Si quieres Resolver escribe RESOLVER || Si quieres hacer una deducción Escribe DEDUCCION :" << std::endl;
+	std::cout << "Si quieres Resolver escribe RESOLVER || Si quieres hacer una deduccion Escribe DEDUCCION :" << std::endl;
 	std::cin >> opcion;
 	if (opcion == "DEDUCCION")
 	{
 
-		sala = habitacion();
-		if (sala == "NONE")
-		{
-			std::cout << "Necesitas estar en una sala para hacer una deduccion" << std::endl;
-		}
+		
 
-		else
-		{
 			std::cout << "Haz tu deduccion: " << std::endl;
 			std::cout << "Sala: " << sala << std::endl;
 			std::cout << "ARMA. Elige entre Candelabro | Cuerda | Punal | Pistola | Tuberia | Herramienta." << std::endl;
@@ -454,7 +469,7 @@ void deduccion()
 			socket.send(comando);
 			comando.clear();
 
-		}
+		
 	}
 	else if (opcion == "RESOLVER")
 	{
@@ -464,7 +479,7 @@ void deduccion()
 	{
 		deduccion();
 	}
-
+	}
 }
 void actualizarPos()
 {
@@ -521,14 +536,24 @@ void printCarta()
 	std::cout << "Se muestra la carta: " << carta;
 	comando.clear();
 }
+void finpartida()
+{
+	std::string ganador;
+	comando >> ganador;
+	std::cout << "                                 ***********La partida ha acabado************" << std::endl;
+	std::cout << "Ha ganado " << ganador << std::endl;
+
+}
 void recibirComando()
 {
 	while (!end_game)
 	{
+	/*	std::cout << "esperando packet" << std::endl;*/
 		socket.receive(comando);
 		
 		comando >> comandClient;
 		c=(HEAD)comandClient;
+		//std::cout << c << std::endl;
 		switch (c)
 		{
 		case HEAD::LANZADADOS: //Recibes dados
@@ -595,12 +620,22 @@ void recibirComando()
 			resolver();
 			break;
 		}
-		case HEAD::RESOLUCIONCORRECTA:
+		case HEAD::RESOLUCIONINCORRECTA:
 		{
 			std::cout << "No es correcto" << std::endl;
 			break;
 		}
-
+		case HEAD::RESOLUCIONCORRECTA:
+		{
+			std::cout << "                        ******HAS GANADO******" << std::endl;
+			finpartida();
+			break;
+		}
+		case HEAD::FINPARTIDA:
+		{
+			finpartida();
+			break;
+		}
 		}
 	}
 

@@ -38,7 +38,9 @@ public:
 	std::string name;
 	int id;
 	float x;
+	float xInit;
 	float y;
+	float yInit;
 	std::list<carta> mano;
 	PlayerInfo();
 	~PlayerInfo();

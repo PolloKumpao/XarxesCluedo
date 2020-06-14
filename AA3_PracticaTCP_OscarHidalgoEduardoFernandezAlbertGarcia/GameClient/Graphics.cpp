@@ -74,8 +74,8 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 
 	int c_movements = 0;
 
-	float playerX_init = playerX;
-	float playerY_init = playerY;
+	 yo->xInit = yo->x;
+	 yo->yInit = yo->y;
 
 	//PLAYER
 	
@@ -111,9 +111,10 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 		player.setOutlineThickness(1.f);
 		cuadradoJugadores.push_back(player);
 	}
-	std::cout << cuadradoJugadores.size() << std::endl;
+	
 	while (_window.isOpen())
 	{
+		_window.setKeyRepeatEnabled(false);
 		sf::Event event;
 		bool playerMoved = false;
 		while (_window.pollEvent(event))
@@ -140,6 +141,8 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 							yo->x--;
 							if (!isInRoom(yo->x, yo->y))
 								c_movements++;
+							std::cout << yo->x << yo->y << std::endl;
+							
 						}
 					}
 					std::cout << "MOVIMIENTOS RESTANTES: " << movements - c_movements << std::endl;
@@ -153,6 +156,7 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 							yo->y--;
 							if (!isInRoom(yo->x, yo->y))
 								c_movements++;
+							std::cout << yo->x << yo->y << std::endl;
 
 						}
 					}
@@ -168,6 +172,7 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 							yo->x++;
 							if (!isInRoom(yo->x, yo->y))
 								c_movements++;
+							std::cout << yo->x << yo->y << std::endl;
 						}
 					}
 					std::cout << "MOVIMIENTOS RESTANTES: " << movements - c_movements << std::endl;
@@ -181,14 +186,15 @@ void Graphics::DrawDungeon(sf::TcpSocket &socket)
 							yo->y++;
 							if (!isInRoom(yo->x, yo->y))
 								c_movements++;
+							std::cout << yo->x << yo->y << std::endl;
 						}
 					}
 					std::cout << "MOVIMIENTOS RESTANTES: " << movements - c_movements << std::endl;
 				}
 				else if (event.key.code == sf::Keyboard::BackSpace)
 				{
-					yo->x = playerX_init;
-					yo->y = playerY_init;
+					yo->x = yo->xInit;
+					yo->y = yo->yInit;
 					c_movements = 0;
 					std::cout << "Reset";
 					std::cout << c_movements;
