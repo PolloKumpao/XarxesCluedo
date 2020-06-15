@@ -19,11 +19,12 @@ PlayerInfo player;
 PlayerInfo playerInfo;
 Graphics g;
 
+std::list<carta> baraja;
 
 
 
-
-
+std::list<sf::TcpSocket*>::iterator jugadorActual;
+std::list <sf::TcpSocket*> peers;
 sf::Socket::Status status = socket.connect("localhost", 50000, sf::milliseconds(15.f));
 sf::Packet packetMano;
 std::vector<carta> mano;
@@ -38,7 +39,7 @@ bool pista = false;
 int dados = 0;
 int tipoPista = 0;
 int n = 0;
-
+int tiradaDadosP2P;
 estados estadoPlayer = WAIT;
 sf::Event event;
 bool end_game = false;
@@ -52,8 +53,12 @@ HEAD c;
 
 
 void inicioPartida()
-{
-
+{	
+	sf::Packet connectionPacket;
+	int connectionType;
+	socket.receive(connectionPacket);
+	connectionPacket >> connectionType;	
+	//Client/server connection
 	if (status != sf::Socket::Done)
 	{
 		std::cout << "Error al establecer conexion\n";
@@ -75,174 +80,344 @@ void inicioPartida()
 		std::cout << "Tu id de jugador es: " << id << std::endl;
 		g.id = id;
 	}
-
 	std::string str = "hola";
 
-	do
+	if (connectionType == 0)
 	{
-		socket.receive(packetMano);
-		packetMano >> size;
+		std::cout << "Conexion en modo Client/Server. " << std::endl;
 
-		for (int i = 0; i < size; i++)
+		do
 		{
-			packetMano >> cartaRepartida;
+			socket.receive(packetMano);
+			packetMano >> size;
 
-			switch (cartaRepartida)
+			for (int i = 0; i < size; i++)
 			{
-			case 1:
-				mano.push_back((carta(PERSONAJE, "Amapola", 1)));
-				break;
-			case 2:
-				mano.push_back((carta(PERSONAJE, "Rubio", 2)));
-				break;
-			case 3:
-				mano.push_back((carta(PERSONAJE, "Orquidea", 3)));
-				break;
-			case 4:
-				mano.push_back((carta(PERSONAJE, "Celeste", 4)));
-				break;
-			case 5:
-				mano.push_back((carta(PERSONAJE, "Prado", 5)));
-				break;
-			case 6:
-				mano.push_back((carta(PERSONAJE, "Mora", 6)));
-				break;
-			case 7:
-				mano.push_back((carta(ARMA, "Candelabro", 7)));
-				break;
-			case 8:
-				mano.push_back((carta(ARMA, "Cuerda", 8)));
-				break;
-			case 9:
-				mano.push_back((carta(ARMA, "Puñal", 9)));
-				break;
-			case 10:
-				mano.push_back((carta(ARMA, "Pistola", 10)));
-				break;
-			case 11:
-				mano.push_back((carta(ARMA, "Tuberia de Plomo", 11)));
-				break;
-			case 12:
-				mano.push_back((carta(ARMA, "Herramienta", 12)));
-				break;
-			case 13:
-				mano.push_back((carta(SALA, "Biblioteca", 13)));
-				break;
-			case 14:
-				mano.push_back((carta(SALA, "Cocina", 14)));
-				break;
-			case 15:
-				mano.push_back((carta(SALA, "Billar", 15)));
-				break;
-			case 16:
-				mano.push_back((carta(SALA, "Baile", 16)));
-				break;
-			case 17:
-				mano.push_back((carta(SALA, "Invernadero", 17)));
-				break;
-			case 18:
-				mano.push_back((carta(SALA, "Comedor", 18)));
-				break;
-			case 19:
-				mano.push_back((carta(SALA, "Vestibulo", 19)));
-				break;
-			case 20:
-				mano.push_back((carta(SALA, "Salon", 20)));
-				break;
-			case 21:
-				mano.push_back((carta(SALA, "Estudio", 21)));
-				break;
-			default:
-				break;
+				packetMano >> cartaRepartida;
+
+				switch (cartaRepartida)
+				{
+				case 1:
+					mano.push_back((carta(PERSONAJE, "Amapola", 1)));
+					break;
+				case 2:
+					mano.push_back((carta(PERSONAJE, "Rubio", 2)));
+					break;
+				case 3:
+					mano.push_back((carta(PERSONAJE, "Orquidea", 3)));
+					break;
+				case 4:
+					mano.push_back((carta(PERSONAJE, "Celeste", 4)));
+					break;
+				case 5:
+					mano.push_back((carta(PERSONAJE, "Prado", 5)));
+					break;
+				case 6:
+					mano.push_back((carta(PERSONAJE, "Mora", 6)));
+					break;
+				case 7:
+					mano.push_back((carta(ARMA, "Candelabro", 7)));
+					break;
+				case 8:
+					mano.push_back((carta(ARMA, "Cuerda", 8)));
+					break;
+				case 9:
+					mano.push_back((carta(ARMA, "Puñal", 9)));
+					break;
+				case 10:
+					mano.push_back((carta(ARMA, "Pistola", 10)));
+					break;
+				case 11:
+					mano.push_back((carta(ARMA, "Tuberia de Plomo", 11)));
+					break;
+				case 12:
+					mano.push_back((carta(ARMA, "Herramienta", 12)));
+					break;
+				case 13:
+					mano.push_back((carta(SALA, "Biblioteca", 13)));
+					break;
+				case 14:
+					mano.push_back((carta(SALA, "Cocina", 14)));
+					break;
+				case 15:
+					mano.push_back((carta(SALA, "Billar", 15)));
+					break;
+				case 16:
+					mano.push_back((carta(SALA, "Baile", 16)));
+					break;
+				case 17:
+					mano.push_back((carta(SALA, "Invernadero", 17)));
+					break;
+				case 18:
+					mano.push_back((carta(SALA, "Comedor", 18)));
+					break;
+				case 19:
+					mano.push_back((carta(SALA, "Vestibulo", 19)));
+					break;
+				case 20:
+					mano.push_back((carta(SALA, "Salon", 20)));
+					break;
+				case 21:
+					mano.push_back((carta(SALA, "Estudio", 21)));
+					break;
+				default:
+					break;
+				}
 			}
-		}
 
-		std::cout << std::endl;
-		std::cout << "Tus cartas son las siguientes: " << std::endl;
-		for (int i = 0; i < mano.size(); i++)
-		{
-			std::cout  <<"-"<< mano[i].nombre << std::endl;
-		}
-
-
-		socket.receive(packHabitacion);
-		packHabitacion >> numPlayers;
-
-		int hab = 0;
-		for (int i = 0; i < numPlayers; ++i)
-		{
-
-			packHabitacion >> hab;
-			switch (hab)
+			std::cout << std::endl;
+			std::cout << "Tus cartas son las siguientes: " << std::endl;
+			for (int i = 0; i < mano.size(); i++)
 			{
-			case 1:
-				player.habitacion = BILLAR;
-				player.x = 14;
-				player.y = 5;
-				break;
-			case 2:
-				player.habitacion = BIBLIOTECA;
-				player.x = 24;
-				player.y = 5;
-				break;
-			case 3:
-				player.habitacion = COCINA;
-				player.x = 5;
-				player.y = 25;
-				break;
-			case 4:
-				player.habitacion = BAILE;
-				player.x = 4;
-				player.y = 14;
-				break;
-			case 5:
-				player.habitacion = INVERNADERO;
-				player.x = 4;
-				player.y = 5;
-				break;
-			case 6:
-				player.habitacion = COMEDOR;
-				player.x = 20;
-				player.y = 25;
-				break;
-			case 7:
-				player.habitacion = VESTIBULO;
-				player.x = 35;
-				player.y = 10;
-				break;
-			case 8:
-				player.habitacion = SALON;
-				player.x = 35;
-				player.y = 26;
-				break;
-			case 9:
-				player.habitacion = ESTUDIO;
-				player.x = 36;
-				player.y = 5;
-				break;
+				std::cout << "-" << mano[i].nombre << std::endl;
 			}
-			g.playerX = player.x;
-			g.playerY = player.y;
-			
-			packHabitacion >> player.id;
-			players.push_back(player);
-			g.ListaJugadores.push_back(player);
+
+
+			socket.receive(packHabitacion);
+			packHabitacion >> numPlayers;
+
+			int hab = 0;
+			for (int i = 0; i < numPlayers; ++i)
+			{
+
+				packHabitacion >> hab;
+				switch (hab)
+				{
+				case 1:
+					player.habitacion = BILLAR;
+					player.x = 14;
+					player.y = 5;
+					break;
+				case 2:
+					player.habitacion = BIBLIOTECA;
+					player.x = 24;
+					player.y = 5;
+					break;
+				case 3:
+					player.habitacion = COCINA;
+					player.x = 5;
+					player.y = 25;
+					break;
+				case 4:
+					player.habitacion = BAILE;
+					player.x = 4;
+					player.y = 14;
+					break;
+				case 5:
+					player.habitacion = INVERNADERO;
+					player.x = 4;
+					player.y = 5;
+					break;
+				case 6:
+					player.habitacion = COMEDOR;
+					player.x = 20;
+					player.y = 25;
+					break;
+				case 7:
+					player.habitacion = VESTIBULO;
+					player.x = 35;
+					player.y = 10;
+					break;
+				case 8:
+					player.habitacion = SALON;
+					player.x = 35;
+					player.y = 26;
+					break;
+				case 9:
+					player.habitacion = ESTUDIO;
+					player.x = 36;
+					player.y = 5;
+					break;
+				}
+				g.playerX = player.x;
+				g.playerY = player.y;
+
+				packHabitacion >> player.id;
+				players.push_back(player);
+				g.ListaJugadores.push_back(player);
+			}
+			/*for (int i = 0; i < numPlayers; ++i)
+			{
+				std::cout << "El jugador " << players[i].id << " comienza en la habitacion " << players[i].habitacion << std::endl;
+			}*/
+			str = "Fin Inicio";
+			/*std::getline(std::cin, str);
+			sf::Packet packet;
+			packet << str;
+			status = socket.send(packet);
+			if (status != sf::Socket::Done)
+			{
+			std::cout << "Error al enviar\n";
+			}*/
+			std::cout << std::endl;
+		} while (str != "Fin Inicio");
+	}
+	
+
+	//P2P connection
+	if (connectionType == 1)
+	{
+		std::cout << "Conexion en modo P2P. " << std::endl;
+		sf::IpAddress ip = "0.0.0.0";
+		unsigned short port = 0;
+
+		int playersSize = 0;
+
+		sf::Packet pack;
+		socket.receive(pack);
+		//socket.disconnect();
+		pack >> playersSize;
+		std::cout << "Hay tantos jugadores : " << playersSize << std::endl;
+		std::string ipS = "";
+		for (int i = 0; i < playersSize; ++i)
+		{
+			pack >> ipS >> port;
+			std::cout << ipS << port << std::endl;
+			sf::TcpSocket *sock = new sf::TcpSocket;
+			sock->connect(ipS, port);
+			peers.push_back(sock);
 		}
-		/*for (int i = 0; i < numPlayers; ++i)
+
+		sf::TcpListener listener;
+		listener.listen(50000 + playersSize);
+
+		for (int i = size; i < 3; ++i)
 		{
-			std::cout << "El jugador " << players[i].id << " comienza en la habitacion " << players[i].habitacion << std::endl;
-		}*/
-		str = "Fin Inicio";
-		/*std::getline(std::cin, str);
-		sf::Packet packet;
-		packet << str;
-		status = socket.send(packet);
-		if (status != sf::Socket::Done)
+			sf::TcpSocket* sock = new sf::TcpSocket;
+			listener.accept(*sock);
+		}
+		listener.close();
+	}
+}
+
+
+void crearBarajaP2P()
+{
+	//6 personajes
+	baraja.push_back(carta(PERSONAJE, "Amapola", 1)); //1
+	baraja.push_back(carta(PERSONAJE, "Rubio", 2)); //2
+	baraja.push_back(carta(PERSONAJE, "Orquidea", 3));//3
+	baraja.push_back(carta(PERSONAJE, "Celeste", 4));//4
+	baraja.push_back(carta(PERSONAJE, "Prado", 5));//5
+	baraja.push_back(carta(PERSONAJE, "Mora", 6));//6
+
+	//6 armas
+	baraja.push_back(carta(ARMA, "Candelabro", 7));//7
+	baraja.push_back(carta(ARMA, "Cuerda", 8));//8
+	baraja.push_back(carta(ARMA, "Punal", 9));//9
+	baraja.push_back(carta(ARMA, "Pistola", 10));//10
+	baraja.push_back(carta(ARMA, "Tuberia", 11));//11
+	baraja.push_back(carta(ARMA, "Herramienta", 12));//12
+
+	//9 habitaciones
+	baraja.push_back(carta(SALA, "Biblioteca", 13));//13
+	baraja.push_back(carta(SALA, "Cocina", 14));//14
+	baraja.push_back(carta(SALA, "Billar", 15));//15
+	baraja.push_back(carta(SALA, "Baile", 16));//16
+	baraja.push_back(carta(SALA, "Invernadero", 17));//17
+	baraja.push_back(carta(SALA, "Comedor", 18));//18
+	baraja.push_back(carta(SALA, "Vestibulo", 19));//19
+	baraja.push_back(carta(SALA, "Salon", 20));//20
+	baraja.push_back(carta(SALA, "Estudio", 21));//21	
+}
+
+void repartirCartasP2P()
+{
+	/*
+	int r;
+	for (; baraja.size() != 0;)
+	{
+		for (int i = 0; 3 > i; i++)
 		{
-		std::cout << "Error al enviar\n";
-		}*/
-		std::cout << std::endl;
-	} while (str != "Fin Inicio");
+			std::list<carta>::iterator it = baraja.begin();
+
+			if (baraja.size() > 0)
+			{
+				r = rand() % baraja.size();
+				std::advance(it, r);
+				listaPlayers[i].mano.push_back(*it);
+				baraja.erase(it);
+
+			}	
+
+		}
+	}*/
+}
+
+void partidaP2P()
+{
+	std::list <sf::TcpSocket*>::iterator j = peers.begin();
+	std::string pista;
+	jugadorActual = j;
+	int counter = 0;
+
+	while (1)
+	{
+		if (tirarDados())
+		{
+			int r = rand() % 2;
+			pista = pistaP2P(r);
+		}
+
+		else if (!tirarDados())
+		{
+			//no hay pista
+		}
+
+	}
+}
+
+bool tirarDados()
+{
+	int dado1 = rand() % 6 + 1;
+	int dado2 = rand() % 6 + 1;
+
+	tiradaDadosP2P = dado1 + dado2;
+
+	if (dado1 == 1 || dado2 == 1)
+	{
+		return true;
+	}
+	else
+		return false;
+}
+
+std::string pistaP2P(int tipoPista)
+{
+	std::string pistaElegida;
+	switch (tipoPista)
+	{
+	case 0:
+		do
+		{
+			std::cout << "Has sacado una pista de arma." << std::endl;
+			std::cout << "Elige entre Candelabro | Cuerda | Punal | Pistola | Tuberia | Herramienta. " << std::endl;
+			std::cout << "Introduce el nombre correcto" << std::endl;
+			std::cin >> pistaElegida;
+		} while (pistaElegida != "Candelabro" && pistaElegida != "Cuerda" && pistaElegida != "Punal" && pistaElegida != "Pistola" && pistaElegida != "Tuberia" && pistaElegida != "Herramienta");
+		break;
+
+	case 1:
+		do
+		{
+			std::cout << "Has sacado una pista de sala." << std::endl;
+			std::cout << "Elige entre Biblioteca | Invernadero | Billar | Estudio | Baile | Vestibulo | Cocina | Comedor | Salon. " << std::endl;
+			std::cout << "Introduce el nombre correcto" << std::endl;
+			std::cin >> pistaElegida;
+		} while (pistaElegida != "Biblioteca" && pistaElegida != "Invernadero" && pistaElegida != "Billar" && pistaElegida != "Estudio" && pistaElegida != "Baile" && pistaElegida != "Vestibulo" && pistaElegida != "Cocina"&& pistaElegida != "Comedor" && pistaElegida != "Salon");
+		break;
+
+	case 2:
+		do
+		{
+			std::cout << "Has sacado una pista de personaje." << std::endl;
+			std::cout << " Elige entre Amapola | Rubio | Orquidea | Celeste | Prado | Mora. " << std::endl;
+			std::cout << "Introduce el nombre correcto" << std::endl;
+			std::cin >> pistaElegida;
+		} while (pistaElegida != "Amapola" && pistaElegida != "Rubio" && pistaElegida != "Orquidea" &&  pistaElegida != "Celeste" && pistaElegida != "Prado" && pistaElegida != "Mora");
+		break;
+	}
+	return pistaElegida;
 }
 
 void turno()
@@ -430,8 +605,7 @@ void endturno()
 }
 
 void deduccion()
-{
-	
+{	
 	comando.clear();
 	std::string arma, sala, personaje,opcion;
 	sala = habitacion();

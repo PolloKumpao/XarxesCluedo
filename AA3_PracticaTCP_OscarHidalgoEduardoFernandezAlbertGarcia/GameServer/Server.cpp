@@ -32,10 +32,21 @@ sf::Packet comando;
 int comandServer;
 int comandClient;
 bool end_turno = false;
+bool p2pConexion;
 
 int n = 0; // ID jugador en listaPlayer
 
 
+//P2P
+struct PeerAdress {
+	sf::IpAddress ip;
+	unsigned short port;
+
+	PeerAdress(sf::IpAddress _ip, unsigned short _port) {
+		ip = _ip;
+		port = _port;
+	};
+};
 
 
 void crearBaraja()
@@ -65,10 +76,7 @@ void crearBaraja()
 	baraja.push_back(carta(SALA, "Comedor", 18));//18
 	baraja.push_back(carta(SALA, "Vestibulo", 19));//19
 	baraja.push_back(carta(SALA, "Salon", 20));//20
-	baraja.push_back(carta(SALA, "Estudio", 21));//21
-
-
-	
+	baraja.push_back(carta(SALA, "Estudio", 21));//21	
 }
 void repartirCartas()
 {
@@ -366,87 +374,147 @@ void ControlServidor()
 	bool running = true;
 	bool inicio = false;
 	// Create a socket to listen to new connections
-	sf::TcpListener listener;
-	sf::Socket::Status status = listener.listen(50000);
-	if (status != sf::Socket::Done)
-	{
-		std::cout << "Error al abrir listener\n";
-		exit(0);
-	}
-	// Create a list to store the future clients
 
-	// Create a selector
-	sf::SocketSelector selector;
-	
-	// Add the listener to the selector
-	selector.add(listener);
-	// Endless loop that waits for new connections
-	while (running)
+	// Create a list to store the future clients
+	std::string connectionType;
+	std::cout << "Escoja que tipo de conexion quiere para la partida: " << std::endl;
+	std::cout << "Escriba 'clientserver' para cliente/servidor y 'p2p' para P2P. " << std::endl;
+	std::cin >> connectionType;
+
+	if (connectionType == "clientserver")
 	{
-		// Make the selector wait for data on any socket
-		if (selector.wait())
+		p2pConexion = false;
+		std::cout << " Creando partida con conexion Client/Server. " << std::endl;
+		std::cout << "Esperando jugadores... La partida empezara cuando hayan 3 jugadores:  " << std::endl;
+		// Create a selector
+		sf::TcpListener listener;
+		sf::Socket::Status status = listener.listen(50000);
+		if (status != sf::Socket::Done)
 		{
-			// Test the listener
-			if (selector.isReady(listener))
+			std::cout << "Error al abrir listener\n";
+			exit(0);
+		}
+		sf::SocketSelector selector;
+		int CSconnection = 0;
+		// Add the listener to the selector
+		selector.add(listener);
+		// Endless loop that waits for new connections
+		while (running)
+		{
+			// Make the selector wait for data on any socket
+			if (selector.wait())
 			{
-				// The listener is ready: there is a pending connection
-				sf::TcpSocket* client = new sf::TcpSocket;
-				if (listener.accept(*client) == sf::Socket::Done)
+				// Test the listener
+				if (selector.isReady(listener))
 				{
-					// Add the new client to the clients list
-					setUp(client);
-					std::cout << " y con puerto: " << client->getRemotePort() << std::endl;
-					jugadores.push_back(client);
-					// Add the new client to the selector so that we will
-					// be notified when he sends something
-					selector.add(*client);
+					// The listener is ready: there is a pending connection
+					sf::TcpSocket* client = new sf::TcpSocket;
+					if (listener.accept(*client) == sf::Socket::Done)
+					{
+						sf::Packet pack;
+						pack << CSconnection;
+						client->send(pack);
+						pack.clear();
+
+						// Add the new client to the clients list
+						setUp(client);
+						std::cout << " y con puerto: " << client->getRemotePort() << std::endl;
+						jugadores.push_back(client);
+						// Add the new client to the selector so that we will
+						// be notified when he sends something
+						selector.add(*client);
+
+						
+
+					}
+					else
+					{
+						// Error, we won't get a new connection, delete the socket
+						std::cout << "Error al recoger conexion nueva\n";
+						delete client;
+					}
 				}
 				else
 				{
-					// Error, we won't get a new connection, delete the socket
-					std::cout << "Error al recoger conexion nueva\n";
-					delete client;
-				}
-			}
-			else
-			{
-				// The listener socket is not ready, test all other sockets (the clients)
-				for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); it != jugadores.end(); ++it)
-				{
-					sf::TcpSocket& client = **it;
-					if (selector.isReady(client))
+					// The listener socket is not ready, test all other sockets (the clients)
+					for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); it != jugadores.end(); ++it)
 					{
-						// The client has sent some data, we can receive it
-						sf::Packet packet;
-						status = client.receive(packet);
-						if (status == sf::Socket::Done)
+						sf::TcpSocket& client = **it;
+						if (selector.isReady(client))
 						{
-							std::string strRec;
-							packet >> strRec;
-							std::cout << "He recibido " << strRec << " del puerto " << client.getRemotePort() << std::endl;
-						}
-						else if (status == sf::Socket::Disconnected)
-						{
-							selector.remove(client);
-							std::cout << "Elimino el socket que se ha desconectado\n";
-						}
-						else
-						{
-							std::cout << "Error al recibir de " << client.getRemotePort() << std::endl;
+							// The client has sent some data, we can receive it
+							sf::Packet packet;
+							status = client.receive(packet);
+							if (status == sf::Socket::Done)
+							{
+								std::string strRec;
+								packet >> strRec;
+								std::cout << "He recibido " << strRec << " del puerto " << client.getRemotePort() << std::endl;
+							}
+							else if (status == sf::Socket::Disconnected)
+							{
+								selector.remove(client);
+								std::cout << "Elimino el socket que se ha desconectado\n";
+							}
+							else
+							{
+								std::cout << "Error al recibir de " << client.getRemotePort() << std::endl;
+							}
 						}
 					}
 				}
 			}
-		}
-		if (jugadores.size() == 3 || inicio)
-		{
-			inicioPartida();
-			std::cout << "Empieza la partida: " << std::endl;
-			inicio = true;
-			running = false;
+			if (jugadores.size() == 3 || inicio)
+			{
+				inicioPartida();
+				std::cout << "Empieza la partida: " << std::endl;
+				inicio = true;
+				running = false;
+			}
 		}
 	}
+	else if (connectionType == "p2p")
+	{
+		p2pConexion = true;
+		std::cout << " Creando partida con conexion P2P. " << std::endl;
+		std::cout << "Esperando jugadores... La partida empezara cuando hayan 3 jugadores:  " << std::endl;
 
+		std::list <PeerAdress> aPeers;
+		sf::TcpListener listener;
+		int P2Pconnection = 1;
+
+		for (int i = 0; i < 3; ++i)
+		{
+			listener.listen(50000);
+			sf::TcpSocket *sock = new sf::TcpSocket;
+			listener.accept(*sock);
+			PeerAdress pa(sock->getRemoteAddress(), sock->getRemotePort());
+			std::cout << "Ha llegado el cliente con IP: " << sock->getRemoteAddress() << "y con puerto: " << sock->getRemotePort() << std::endl;
+			aPeers.push_back(pa);
+			sf::Packet pack;
+
+			pack << P2Pconnection;
+			sock->send(pack);
+			pack.clear();
+
+			setUp(sock);
+			int a = aPeers.size();
+			pack << a;
+			//sock->send(pack);
+			std::cout << "Hay tantos jugadores : " << aPeers.size() << std::endl;
+			int counter = 0;
+			for (std::list<PeerAdress>::iterator ot = aPeers.begin(); counter != aPeers.size(); ++ot)
+			{				
+				std::cout << ot->ip.toString() << std::endl;
+				pack << ot->ip.toString() << ot->port;
+				counter++;
+			}
+
+			sock->send(pack);
+			delete sock;
+		}
+		listener.close();
+	}
 }
 
 void desmentir()
@@ -594,10 +662,7 @@ void comprobar()
 
 void recibirPacket()
 {
-	
-	
-		(*jugadorActual)->receive(comando);
-	
+	(*jugadorActual)->receive(comando);	
 	
 	int temp;
 	
@@ -662,8 +727,7 @@ void partida()
 		turno();
 	
 		if (counter!=(listaPlayers.size()-1))
-		{
-			
+		{		
 			counter++;
 			j++;
 			jugadorActual = j;
@@ -672,8 +736,7 @@ void partida()
 		{
 			j = jugadores.begin();
 			counter = 0;
-			jugadorActual = j;
-			
+			jugadorActual = j;			
 		}
 		if ((listaPlayers.size()-1) == n)
 		{
@@ -683,9 +746,6 @@ void partida()
 		{
 			n++;
 		}
-
-
-
 	}
 }
 
@@ -693,12 +753,14 @@ int main()
 {
 
 	srand(time(NULL));
-	std::cout << "Esperando jugadores... La partida empezara cuando hayan 3 jugadores:  " << std::endl;
 	ControlServidor();
-	partida();
+
+	if (!p2pConexion)
+		partida();
 
 	//tirarDados();
-
+	std::string a;
+	std::cin >> a;
 
 
 	return 0;
