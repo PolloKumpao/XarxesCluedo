@@ -11,7 +11,7 @@ std::list<sf::TcpSocket*> jugadores;
 
 enum HEAD {
 	START, LANZADADOS, ELEGIRPISTA, REVELARPISTA, MOVIMIENTO, NUEVAPOSICION, DEDUCCION, ENVIOSUPOSICION,
-	DESMENTIRCS, DESMENTIRSC, NADIE, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA, ENDTURNO, RESOLUCIONINCORRECTA, FINPARTIDA
+	DESMENTIRCS, DESMENTIRSC, NADIE, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA, ENDTURNO, RESOLUCIONINCORRECTA, FINPARTIDA, CAMBIOTURNO
 };
 
 
@@ -48,7 +48,20 @@ struct PeerAdress {
 	};
 };
 
+void EnviarAll(sf::Packet p, sf::TcpSocket* id)
+{
 
+	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
+	{
+		if (id != (*it))
+		{
+			(*it)->send(p);
+		}
+
+
+	}
+
+}
 void crearBaraja()
 {
 	//6 personajes
@@ -167,6 +180,7 @@ void enviarRecibirPista()
 
 void tirarDados()
 {
+	
 	end_turno = false;
 	comando.clear();
 	
@@ -231,20 +245,7 @@ void actualizarPos()
 	std::cout <<"Envio deduccion" << std::endl;
 }
 
-void EnviarAll(sf::Packet p, sf::TcpSocket* id)
-{
 
-	for (std::list<sf::TcpSocket*>::iterator it = jugadores.begin(); jugadores.end() != it; it++)
-	{
-		if (id != (*it))
-		{
-			(*it)->send(p);
-		}
-
-
-	}
-
-}
 
 void Enviar()
 {
@@ -388,7 +389,7 @@ void ControlServidor()
 		std::cout << "Esperando jugadores... La partida empezara cuando hayan 3 jugadores:  " << std::endl;
 		// Create a selector
 		sf::TcpListener listener;
-		sf::Socket::Status status = listener.listen(50000);
+		sf::Socket::Status status = listener.listen(50001);
 		if (status != sf::Socket::Done)
 		{
 			std::cout << "Error al abrir listener\n";
@@ -717,13 +718,21 @@ void partida()
 {
 	//std::cout << "Entro en la partida." << std::endl;
 	std::list<sf::TcpSocket*>::iterator j = jugadores.begin();
+	std::string nom;
+	nom = listaPlayers[0].name;
 
-
+	sf::Packet cambio;
+	cambio << HEAD::CAMBIOTURNO << nom;
 	jugadorActual = j;
+	EnviarAll(cambio, *jugadorActual);
+	cambio.clear();
+
+	
 	int counter = 0;
 
 	while (1)
 	{
+	
 		turno();
 	
 		if (counter!=(listaPlayers.size()-1))
@@ -746,6 +755,11 @@ void partida()
 		{
 			n++;
 		}
+
+		nom = listaPlayers[n].name;
+		cambio <<HEAD::CAMBIOTURNO << nom;
+		EnviarAll(cambio,*jugadorActual);
+		cambio.clear();
 	}
 }
 

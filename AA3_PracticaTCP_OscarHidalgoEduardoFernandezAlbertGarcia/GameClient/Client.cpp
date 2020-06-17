@@ -25,7 +25,7 @@ std::list<carta> baraja;
 
 std::list<sf::TcpSocket*>::iterator jugadorActual;
 std::list <sf::TcpSocket*> peers;
-sf::Socket::Status status = socket.connect("localhost", 50000, sf::milliseconds(15.f));
+sf::Socket::Status status = socket.connect("localhost", 50001, sf::milliseconds(15.f));
 sf::Packet packetMano;
 std::vector<carta> mano;
 std::vector<PlayerInfo> players;
@@ -45,7 +45,7 @@ sf::Event event;
 bool end_game = false;
 enum HEAD {
 	START, LANZADADOS, ELEGIRPISTA, REVELARPISTA, MOVIMIENTO, NUEVAPOSICION, DEDUCCION, ENVIOSUPOSICION,
-	DESMENTIRCS, DESMENTIRSC, NADIE, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA, ENDTURNO, RESOLUCIONINCORRECTA, FINPARTIDA
+	DESMENTIRCS, DESMENTIRSC, NADIE, DESMENTIDO, DESMENTIDOGENERAL, RESOLVERCS, RESOLVERSC, RESOLUCIONCORRECTA, ENDTURNO, RESOLUCIONINCORRECTA, FINPARTIDA, CAMBIOTURNO
 };
 
 HEAD c;
@@ -249,6 +249,8 @@ void inicioPartida()
 			{
 			std::cout << "Error al enviar\n";
 			}*/
+			
+			
 			std::cout << std::endl;
 		} while (str != "Fin Inicio");
 	}
@@ -344,29 +346,6 @@ void repartirCartasP2P()
 	}*/
 }
 
-void partidaP2P()
-{
-	std::list <sf::TcpSocket*>::iterator j = peers.begin();
-	std::string pista;
-	jugadorActual = j;
-	int counter = 0;
-
-	while (1)
-	{
-		if (tirarDados())
-		{
-			int r = rand() % 2;
-			pista = pistaP2P(r);
-		}
-
-		else if (!tirarDados())
-		{
-			//no hay pista
-		}
-
-	}
-}
-
 bool tirarDados()
 {
 	int dado1 = rand() % 6 + 1;
@@ -381,7 +360,6 @@ bool tirarDados()
 	else
 		return false;
 }
-
 std::string pistaP2P(int tipoPista)
 {
 	std::string pistaElegida;
@@ -419,6 +397,32 @@ std::string pistaP2P(int tipoPista)
 	}
 	return pistaElegida;
 }
+void partidaP2P()
+{
+	std::list <sf::TcpSocket*>::iterator j = peers.begin();
+	std::string pista;
+	jugadorActual = j;
+	int counter = 0;
+
+	while (1)
+	{
+		if (tirarDados())
+		{
+			int r = rand() % 2;
+			pista = pistaP2P(r);
+		}
+
+		else if (!tirarDados())
+		{
+			//no hay pista
+		}
+
+	}
+}
+
+
+
+
 
 void turno()
 {
@@ -811,6 +815,13 @@ void recibirComando()
 		case HEAD::FINPARTIDA:
 		{
 			finpartida();
+			break;
+		}case HEAD::CAMBIOTURNO:
+		{
+			std::string ij;
+			comando >> ij;
+
+			std::cout << "                        ******Turno de " << ij << "******" << std::endl;
 			break;
 		}
 		}
