@@ -36,6 +36,5 @@ c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-producc
           [
               T=float
           ]
-c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\client.cpp(42): warning C4244: 'argumento': conversión de 'float' a 'sf::Int32'; posible pérdida de datos
-c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\client.cpp(333): warning C4101: 'sock': variable local sin referencia
+c:\users\pc nuevo\desktop\oscar\0.clase\4rt curso\diseño de niveles\aa2-produccion\xarxescluedo\aa3_practicatcp_oscarhidalgoeduardofernandezalbertgarcia\gameclient\client.cpp(41): warning C4244: 'argumento': conversión de 'float' a 'sf::Int32'; posible pérdida de datos
   GameClient.vcxproj -> C:\Users\PC NUEVO\Desktop\Oscar\0.CLASE\4rt Curso\Diseño de niveles\AA2-Produccion\XarxesCluedo\AA3_PracticaTCP_OscarHidalgoEduardoFernandezAlbertGarcia\x64\Debug\GameClient.exe

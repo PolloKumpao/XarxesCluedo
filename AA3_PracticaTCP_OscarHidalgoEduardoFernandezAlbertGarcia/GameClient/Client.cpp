@@ -26,13 +26,12 @@ struct playerInfoP2P
 	std::string name = "";
 	sf::IpAddress ip;
 	unsigned short port;
-	//sf::TcpSocket* sock;
+	sf::TcpSocket* sock;
 
 	playerInfoP2P(std::string _name,  sf::IpAddress _ip, unsigned short _port) {
 		name = _name;
 		ip = _ip;
 		port = _port;
-		//sock = _sock;
 	};
 };
 
@@ -315,10 +314,12 @@ void inicioPartida()
 			listener.listen(50000 + playersSize);
 
 
-			for (int i = size; i < 3; ++i)
+			for (int i = playersSize; i < 3; ++i)
 			{
+				std::cout << playersSize << std::endl;
 				sf::TcpSocket* sock = new sf::TcpSocket;
-				listener.accept(*sock);
+				//listener.accept(*sock);
+				std::cout << "LISTENEADO" << std::endl;
 			}
 			listener.close();
 		}
@@ -330,12 +331,19 @@ void inicioPartida()
 			std::string name = "";
 			sf::IpAddress ip="0.0.0.0";
 			unsigned short port=0;
-			sf::TcpSocket* sock;
-			packInfo >> name >> ip.toString() >> port;
+			sf::TcpSocket* sock= new sf::TcpSocket();
 			socket.receive(packInfo);
+			packInfo >> name >> ip.toString() >> port;
+			sock->connect(ip, port);	
 			playerInfoP2P p(name, ip, port);
+			p.sock = sock;
+			playersP2P.push_back(p);
 		}
 		std::cout << "EMPIEZA LA PARTIDA" << std::endl;
+		while (1)
+		{
+
+		}
 	}
 }
 
