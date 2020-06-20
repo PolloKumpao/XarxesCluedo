@@ -286,7 +286,7 @@ void inicioPartida()
 
 	//P2P connection
 	if (connectionType == 1)
-	{
+	{/*
 		std::cout << "Conexion en modo P2P. " << std::endl;
 		sf::IpAddress ip = "0.0.0.0";
 		unsigned short port = 0;
@@ -307,22 +307,38 @@ void inicioPartida()
 			peers.push_back(sock);
 		}
 
+		
 		if (playersSize < 3)
 		{
 			std::cout << "Esperando al resto de jugadores ... " << std::endl;
 			sf::TcpListener listener;
 			listener.listen(50000 + playersSize);
 
-
-			for (int i = playersSize; i < 3; ++i)
-			{
-				std::cout << playersSize << std::endl;
-				sf::TcpSocket* sock = new sf::TcpSocket;
-				//listener.accept(*sock);
-				std::cout << "LISTENEADO" << std::endl;
-			}
+				for (int i = playersSize; i < 3; ++i)
+				{
+					std::cout << playersSize << std::endl;
+					sf::TcpSocket* sock = new sf::TcpSocket;
+					listener.accept(*sock);
+					std::cout << "LISTENEADO" << std::endl;
+				}
+			
 			listener.close();
 		}
+
+		if (playersSize <= 3)
+		{
+			sf::Socket::Status statusP = socket.connect("localhost", 50000 + playersSize, sf::milliseconds(15.f));
+			if (status != sf::Socket::Done)
+			{
+				std::cout << "Error al establecer conexion\n";
+				exit(0);
+			}
+			else 
+			{
+				std::cout << "CO NECTADO" << std::endl;
+			}
+		}
+
 	
 		sf::Packet packInfo;
 		for (int i = 0; i < 3; ++i)
@@ -334,16 +350,19 @@ void inicioPartida()
 			sf::TcpSocket* sock= new sf::TcpSocket();
 			socket.receive(packInfo);
 			packInfo >> name >> ip.toString() >> port;
+			std::cout << name << std::endl;
 			sock->connect(ip, port);	
 			playerInfoP2P p(name, ip, port);
 			p.sock = sock;
 			playersP2P.push_back(p);
+		
 		}
-		std::cout << "EMPIEZA LA PARTIDA" << std::endl;
+		
 		while (1)
 		{
 
 		}
+		std::cout << "EMPIEZA LA PARTIDA" << std::endl;*/
 	}
 }
 

@@ -403,7 +403,7 @@ void ControlServidor()
 		std::cout << "Esperando jugadores... La partida empezara cuando hayan 3 jugadores:  " << std::endl;
 		// Create a selector
 		sf::TcpListener listener;
-		sf::Socket::Status status = listener.listen(50001);
+		sf::Socket::Status status = listener.listen(50000);
 		if (status != sf::Socket::Done)
 		{
 			std::cout << "Error al abrir listener\n";
@@ -439,7 +439,7 @@ void ControlServidor()
 						// be notified when he sends something
 						selector.add(*client);
 
-						
+
 
 					}
 					else
@@ -493,59 +493,103 @@ void ControlServidor()
 		p2pConexion = true;
 		std::cout << " Creando partida con conexion P2P. " << std::endl;
 		std::cout << "Esperando jugadores... La partida empezara cuando hayan 3 jugadores:  " << std::endl;
-
-		sf::Packet packName;
-		std::string name = "";
-		std::list <PeerAdress> aPeers;
 		sf::TcpListener listener;
-		int P2Pconnection = 1;
-
-		for (int i = 0; i < 3; ++i)
+		sf::Socket::Status status = listener.listen(50000);
+		if (status != sf::Socket::Done)
 		{
-			
-			listener.listen(50000);
-			sf::TcpSocket *sock = new sf::TcpSocket;
-			listener.accept(*sock);
-			PeerAdress pa(sock->getRemoteAddress(), sock->getRemotePort());
-			sf::Packet pack;
-			pack << P2Pconnection;
-			sock->send(pack);
-			pack.clear();
-			std::cout << "Ha llegado el cliente con IP: " << sock->getRemoteAddress() << "y con puerto: " << sock->getRemotePort() << std::endl;
-			sock->receive(packName);
-			packName >> name;
-			std::cout << "Y con nombre " << name << std::endl;
-			aPeers.push_back(pa);
-			playerInfoP2P p(name, sock->getRemoteAddress(), sock->getRemotePort(), sock);
-			playersP2P.push_back(p);
-			//setUp(sock);
-			int a = aPeers.size();
-			pack << a;
-			//sock->send(pack);
-			std::cout << "Hay tantos jugadores : " << aPeers.size() << std::endl;
-			int counter = 0;
-			for (std::list<PeerAdress>::iterator ot = aPeers.begin(); counter != aPeers.size(); ++ot)
-			{				
-				std::cout << ot->ip.toString() << std::endl;
-				pack << ot->ip.toString() << ot->port;
-				counter++;
+			std::cout << "Error al abrir listener\n";
+			exit(0);
+		}
+		std::vector<PeerAdress> peers;
+		std::list<sf::TcpSocket*> clientes;
+		sf::SocketSelector selector;
+		sf::Packet packet;
+		selector.add(listener);
+
+		while (running)
+		{
+			if (selector.wait())
+			{
+				if (selector.isReady(listener))
+				{
+					// Si el listener esta "ready" ha habido una conexión
+					sf::TcpSocket* client = new sf::TcpSocket;
+					if (listener.accept(*client) == sf::Socket::Done)
+					{
+
+						for (int i = 0; i < peers.size(); i++)
+						{
+							std::cout << ", " << peers[i].port << " " << peers[i].ip << std::endl;
+						}
+
+						if (peers.empty())
+						{
+							std::cout << "Llega el cliente con puerto: " << client->getRemotePort() << " y con IP" << client->getRemoteAddress() << std::endl;
+							peers.push_back({ client->getRemoteAddress(), client->getRemotePort() });
+							clientes.push_back(client);
+						}
+						else if (peers.size() < 3)
+						{
+
+						}
+
+					}
+				}
+
+				/*
+				sf::Packet packName;
+				std::string name = "";
+				std::list <PeerAdress> aPeers;
+				sf::TcpListener listener;
+				int P2Pconnection = 1;
+
+				for (int i = 0; i < 3; ++i)
+				{
+
+					listener.listen(50000);
+					sf::TcpSocket *sock = new sf::TcpSocket;
+					listener.accept(*sock);
+					PeerAdress pa(sock->getRemoteAddress(), sock->getRemotePort());
+					sf::Packet pack;
+					pack << P2Pconnection;
+					sock->send(pack);
+					pack.clear();
+					sock->receive(packName);
+					packName >> name;
+					std::cout << "Ha llegado el cliente con IP: " << sock->getRemoteAddress() << "y con puerto: " << sock->getRemotePort() << std::endl;
+					std::cout << "Y con nombre " << name << std::endl;
+					aPeers.push_back(pa);
+					playerInfoP2P p(name, sock->getRemoteAddress(), sock->getRemotePort(), sock);
+					playersP2P.push_back(p);
+					//setUp(sock);
+					int a = aPeers.size();
+					pack << a;
+					//sock->send(pack);
+					std::cout << "Hay tantos jugadores : " << aPeers.size() << std::endl;
+					int counter = 0;
+					for (std::list<PeerAdress>::iterator ot = aPeers.begin(); counter != aPeers.size(); ++ot)
+					{
+						std::cout << ot->ip.toString() << std::endl;
+						pack << ot->ip.toString() << ot->port;
+						counter++;
+					}
+
+					sock->send(pack);
+					delete sock;
+					pack.clear();
+				}
+				sf::Packet playersPack;
+				for (std::list <playerInfoP2P>::iterator it = playersP2P.begin(); it != playersP2P.end(); it++)
+				{
+					playersPack<< it->name << it->ip.toString() << it->port;
+					it->sock->send(playersPack);
+					playersPack.clear();
+				}
+				listener.close();*/
 			}
-
-			sock->send(pack);
-			delete sock;
-			pack.clear();
 		}
-		sf::Packet playersPack;
-		for (std::list <playerInfoP2P>::iterator it = playersP2P.begin(); it != playersP2P.end(); it++)
-		{
-			playersPack<< it->name << it->ip.toString() << it->port;
-			it->sock->send(playersPack);
-			playersPack.clear();
-		}
-		listener.close();
 	}
 }
-
 void desmentir()
 {
 	std::string arma, sala, personaje;
@@ -807,68 +851,3 @@ int main()
 
 	return 0;
 }
-
-/*#include <SFML/Network.hpp>
-#include <SFML/System.hpp>
-#include <iostream>
-
-using namespace sf;
-
-const unsigned short MAX_PLAYERS = 5;
-const unsigned short SERVER_PORT = 50000;
-
-struct Address {
-	std::string nick;
-	IpAddress ipAdress;
-	unsigned short port;
-
-	Address(std::string _nick, IpAddress _ipAddress, unsigned short _port) : nick(_nick), ipAdress(_ipAddress), port(_port) {}
-
-};
-
-void print(std::string text) {
-	std::cout << text << std::endl;
-}
-
-int main()
-{
-	std::vector<Address*> peer;
-	TcpListener listener;
-
-	unsigned int random = (unsigned int)rand();
-
-	listener.listen(SERVER_PORT);
-
-	for (short i = 0; i < MAX_PLAYERS; i++)
-	{
-		TcpSocket socket;
-		if (listener.accept(socket) != Socket::Status::Done) {
-			print("error al listener");
-		}
-
-		std::string nickname;
-		Packet nickPacket;
-		socket.receive(nickPacket);
-		nickPacket >> nickname;
-
-		Packet pack;
-		Address* newAddress = new Address(nickname, socket.getRemoteAddress(), socket.getRemotePort());
-		peer.push_back(newAddress);
-
-		int count = peer.size() - 1;
-		pack << count;
-		
-		pack << random;
-
-		for (int i = 0; i < peer.size() - 1; i++) {
-			pack << peer[i]->ipAdress.toString() << peer[i]->port << peer[i]->nick;
-			std::cout << peer[i]->nick << std::endl;
-		}
-
-		socket.send(pack);
-		socket.disconnect();
-	}
-
-	listener.close();
-	return 0;
-}*/
